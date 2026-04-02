@@ -253,6 +253,85 @@ select.form-control{cursor:pointer}
 .tag-mod1{background:rgba(56,189,248,.12);color:var(--accent);border:1px solid rgba(56,189,248,.25)}
 .tag-mod2{background:rgba(167,139,250,.12);color:var(--purple);border:1px solid rgba(167,139,250,.25)}
 .inline-num{font-family:var(--font-mono)}
+
+/* ─── CHECKLIST ──────────────────────────────────────────────────────────── */
+/* Layout: dois painéis — lista de disciplinas à esquerda, conteúdo à direita */
+.cl-layout{display:grid;grid-template-columns:220px 1fr;gap:0;height:calc(100vh - 53px);margin:-26px -30px;overflow:hidden}
+.cl-sidebar{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:14px 0}
+.cl-sidebar::-webkit-scrollbar{width:3px}
+.cl-sidebar::-webkit-scrollbar-thumb{background:var(--border2)}
+.cl-content{overflow-y:auto;padding:20px 24px}
+.cl-content::-webkit-scrollbar{width:3px}
+.cl-content::-webkit-scrollbar-thumb{background:var(--border2)}
+
+/* Disc nav items no painel esquerdo */
+.cl-disc-item{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;border-left:2px solid transparent;transition:all .12s;position:relative}
+.cl-disc-item:hover{background:var(--surface2)}
+.cl-disc-item.active{border-left-color:var(--accent);background:var(--accent-dim)}
+.cl-disc-item.active .cl-disc-name{color:var(--accent)}
+.cl-disc-name{font-size:11px;flex:1;color:var(--text2);line-height:1.3}
+.cl-disc-item.active .cl-disc-name{color:var(--accent)}
+.cl-disc-pct{font-family:var(--font-mono);font-size:9px;color:var(--text3);flex-shrink:0}
+.cl-disc-bar{position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--border)}
+.cl-disc-bar-fill{height:100%;transition:width .4s}
+.cl-disc-mod-sep{font-family:var(--font-mono);font-size:8px;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;padding:10px 14px 4px;border-top:1px solid var(--border);margin-top:4px}
+.cl-disc-mod-sep:first-child{border-top:none;margin-top:0}
+
+/* Header do conteúdo da disciplina */
+.cl-disc-header{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.cl-disc-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px}
+.cl-disc-meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.cl-disc-meta-item{font-family:var(--font-mono);font-size:9px;color:var(--text3)}
+.cl-disc-meta-item span{color:var(--text2)}
+.cl-progress-bar-wrap{flex:1;min-width:120px;height:4px;background:var(--surface3);border-radius:2px}
+.cl-progress-bar-fill{height:100%;border-radius:2px;transition:width .4s}
+
+/* Ações em massa */
+.cl-bulk-actions{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.cl-bulk-sep{flex:1}
+
+/* Tópico (nível 1) */
+.cl-topic{margin-bottom:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.cl-topic-header{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;user-select:none;transition:background .12s}
+.cl-topic-header:hover{background:var(--surface2)}
+.cl-topic-chevron{width:10px;height:10px;flex-shrink:0;color:var(--text3);transition:transform .18s}
+.cl-topic-chevron.open{transform:rotate(90deg)}
+.cl-topic-label{font-size:12px;font-weight:500;flex:1;color:var(--text)}
+.cl-topic-counter{font-family:var(--font-mono);font-size:9px;color:var(--text3);flex-shrink:0}
+.cl-topic-bar{width:50px;height:2px;background:var(--surface3);border-radius:1px;flex-shrink:0}
+.cl-topic-bar-fill{height:100%;border-radius:1px;transition:width .3s}
+.cl-topic-status{font-family:var(--font-mono);font-size:8px;padding:1px 5px;border-radius:3px;flex-shrink:0}
+
+/* Subtópicos container */
+.cl-subtopics{display:none;padding:0 12px 8px;border-top:1px solid var(--border)}
+.cl-subtopics.open{display:block}
+
+/* Subtópico (nível 2 — unidade de progresso) */
+.cl-sub-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);cursor:default}
+.cl-sub-item:last-child{border-bottom:none}
+.cl-sub-label{font-size:11px;color:var(--text2);flex:1;line-height:1.4}
+.cl-sub-status{font-family:var(--font-mono);font-size:8px;padding:1px 6px;border-radius:3px;cursor:pointer;transition:all .12s;white-space:nowrap;flex-shrink:0;border:1px solid transparent}
+.cl-sub-status:hover{opacity:.8}
+
+/* Tópico sem subtópicos (item direto) */
+.cl-direct-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--border);cursor:default}
+.cl-direct-item:first-child{border-top:none}
+.cl-direct-label{font-size:11px;color:var(--text2);flex:1;line-height:1.4}
+
+/* Barra de fechamento global no topo do checklist */
+.cl-global-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;gap:20px;align-items:center;flex-shrink:0}
+.cl-global-stat{text-align:center}
+.cl-global-stat-val{font-family:var(--font-mono);font-size:16px;font-weight:600;line-height:1}
+.cl-global-stat-label{font-family:var(--font-mono);font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.cl-global-bars{flex:1;display:flex;flex-direction:column;gap:5px}
+.cl-global-bar-row{display:flex;align-items:center;gap:8px}
+.cl-global-bar-label{font-family:var(--font-mono);font-size:8px;color:var(--text3);width:64px;flex-shrink:0}
+.cl-global-bar-bg{flex:1;height:4px;background:var(--surface3);border-radius:2px}
+.cl-global-bar-fill{height:100%;border-radius:2px;transition:width .4s}
+.cl-global-bar-pct{font-family:var(--font-mono);font-size:9px;width:28px;text-align:right;flex-shrink:0}
+
+/* Wrapper do conteúdo com barra global acima */
+.cl-main-wrap{display:flex;flex-direction:column;overflow:hidden}
 </style>
 </head>
 <body>
@@ -283,6 +362,10 @@ select.form-control{cursor:pointer}
     <button class="nav-item" onclick="showView('simulados')" data-view="simulados">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L5 7l3 3 2-4 4 6"/><rect x="1" y="1" width="14" height="14" rx="1"/></svg>
       Simulados
+    </button>
+    <button class="nav-item" onclick="showView('checklist')" data-view="checklist">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h1l1 1 2-2M2 9h1l1 1 2-2M2 14h1l1 1 2-2"/><path d="M8 5h6M8 10h6M8 15h4"/></svg>
+      Checklist
     </button>
     <button class="nav-item" onclick="showView('config')" data-view="config">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4"/></svg>
@@ -344,6 +427,17 @@ select.form-control{cursor:pointer}
   <!-- SIMULADOS -->
   <div class="view" id="view-simulados">
     <div id="simulados-content"></div>
+  </div>
+
+  <!-- CHECKLIST -->
+  <div class="view" id="view-checklist" style="padding:0">
+    <div class="cl-layout">
+      <div class="cl-sidebar" id="cl-disc-nav"></div>
+      <div class="cl-main-wrap">
+        <div class="cl-global-bar" id="cl-global-bar"></div>
+        <div class="cl-content" id="cl-content"></div>
+      </div>
+    </div>
   </div>
 
   <!-- CONFIG -->
@@ -604,7 +698,7 @@ function showView(v) {
   const titles = {
     dashboard:'Dashboard', edital:'Fechamento de Edital',
     sessoes:'Sessões de estudo', erros:'Caderno de Erros',
-    simulados:'Simulados', config:'Configurações',
+    simulados:'Simulados', config:'Configurações', checklist:'Checklist do Edital',
   };
   document.getElementById('topbar-title').textContent = titles[v] || v;
 
@@ -1327,7 +1421,7 @@ function exportData() {
 
 function clearData() {
   if (!confirm('Apagar todos os dados? Esta ação é irreversível.')) return;
-  DB = { sessoes:[], erros:[], simulados:[], config:defaultConfig(), edital_status:defaultEditalStatus() };
+  DB = { sessoes:[], erros:[], simulados:[], config:defaultConfig(), edital_status:defaultEditalStatus(), checklist:{} };
   saveDB(); showToast('Dados apagados'); renderDashboard();
 }
 
@@ -1401,6 +1495,682 @@ function seedDemo() {
 
   saveDB();
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  CHECKLIST — Estrutura completa do edital TJ-SC
+//
+//  DECISÃO DE DESIGN:
+//  - Hierarquia: disciplina → tópico → subtópico (unidade mínima de progresso)
+//  - Tópicos sem subtópicos são tratados como itens diretos (unidade = o próprio tópico)
+//  - Status por item: os mesmos 5 níveis do sistema geral (reutiliza s-* CSS)
+//  - Status da disciplina = calculado automaticamente: média ponderada dos itens
+//    pela regra: se ≥80% dominado → dominado; ≥60% testado/dom → testado; etc.
+//  - O score de prioridade lê cl_pct_dominado via getCLDiscPct() — itens não
+//    dominados aumentam a urgência proporcionalmente ao peso da disciplina.
+//  - Persistência: DB.checklist[discKey][itemId] = status string
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ─── DEFINIÇÃO DO EDITAL COMPLETO ────────────────────────────────────────────
+// Estrutura: { disc: key, topicos: [ { id, label, subs: [ { id, label } ] } ] }
+// Se subs === [], o tópico é item direto.
+const CHECKLIST_DATA = [
+  // ── MÓDULO 1 ────────────────────────────────────────────────────────────
+  { disc: 'lp', topicos: [
+    { id:'lp_comp', label:'Compreensão e interpretação de textos', subs:[
+      {id:'lp_comp_1', label:'Tipos e gêneros textuais'},
+      {id:'lp_comp_2', label:'Inferências e pressupostos'},
+      {id:'lp_comp_3', label:'Coerência e progressão temática'},
+    ]},
+    { id:'lp_ort', label:'Ortografia e acentuação', subs:[
+      {id:'lp_ort_1', label:'Regras ortográficas (pós-reforma)'},
+      {id:'lp_ort_2', label:'Acentuação gráfica'},
+    ]},
+    { id:'lp_coes', label:'Coesão textual', subs:[
+      {id:'lp_coes_1', label:'Referenciação e substituição'},
+      {id:'lp_coes_2', label:'Conectivos e articuladores'},
+    ]},
+    { id:'lp_gram', label:'Gramática prática', subs:[
+      {id:'lp_gram_1', label:'Concordância verbal'},
+      {id:'lp_gram_2', label:'Concordância nominal'},
+      {id:'lp_gram_3', label:'Pontuação'},
+      {id:'lp_gram_4', label:'Crase'},
+      {id:'lp_gram_5', label:'Colocação pronominal'},
+      {id:'lp_gram_6', label:'Período simples e composto'},
+    ]},
+    { id:'lp_rees', label:'Reescrita e adaptação de textos', subs:[]},
+  ]},
+
+  { disc: 'leg', topicos: [
+    { id:'leg_org', label:'Organização do Poder Judiciário de SC', subs:[
+      {id:'leg_org_1', label:'Estrutura e competências do TJSC'},
+      {id:'leg_org_2', label:'Comarcas e varas'},
+    ]},
+    { id:'leg_reg', label:'Regimento Interno do TJSC', subs:[
+      {id:'leg_reg_1', label:'Plenário e órgãos fracionários'},
+      {id:'leg_reg_2', label:'Atribuições dos órgãos'},
+    ]},
+    { id:'leg_cor', label:'Normas da Corregedoria-Geral da Justiça', subs:[
+      {id:'leg_cor_1', label:'Provimentos e resoluções CGJ'},
+      {id:'leg_cor_2', label:'Inspeções e correições'},
+    ]},
+    { id:'leg_rj',  label:'Regime jurídico e disciplinar dos servidores', subs:[
+      {id:'leg_rj_1',  label:'Direitos e deveres'},
+      {id:'leg_rj_2',  label:'Processo administrativo disciplinar'},
+      {id:'leg_rj_3',  label:'Penalidades'},
+    ]},
+  ]},
+
+  { disc: 'etica', topicos: [
+    { id:'et_princ', label:'Princípios da Administração Pública (art. 37 CF)', subs:[]},
+    { id:'et_dev',   label:'Deveres e responsabilidades do servidor', subs:[
+      {id:'et_dev_1', label:'Lei 8.112/90 — deveres e proibições'},
+      {id:'et_dev_2', label:'Responsabilidade civil, penal e administrativa'},
+    ]},
+    { id:'et_imp',   label:'Improbidade administrativa', subs:[
+      {id:'et_imp_1', label:'Lei 8.429/92 — atos e sanções'},
+      {id:'et_imp_2', label:'Alterações da Lei 14.230/2021'},
+    ]},
+    { id:'et_gest',  label:'Gestão de pessoas e comportamento organizacional', subs:[]},
+    { id:'et_int',   label:'Integridade institucional no PJSC', subs:[]},
+    { id:'et_res22', label:'Resolução TJ nº 22/2021', subs:[]},
+  ]},
+
+  { disc: 'info', topicos: [
+    { id:'inf_fund', label:'Fundamentos de informática', subs:[
+      {id:'inf_fund_1', label:'Hardware e software básico'},
+      {id:'inf_fund_2', label:'Windows e LibreOffice / MS Office'},
+      {id:'inf_fund_3', label:'Internet, e-mail e navegadores'},
+    ]},
+    { id:'inf_seg',  label:'Segurança da informação', subs:[
+      {id:'inf_seg_1', label:'Princípios: CID (confidencialidade, integridade, disponibilidade)'},
+      {id:'inf_seg_2', label:'Ameaças, ataques e controles'},
+      {id:'inf_seg_3', label:'Certificação e assinatura digital'},
+    ]},
+    { id:'inf_lgpd', label:'Proteção de dados pessoais — LGPD', subs:[
+      {id:'inf_lgpd_1', label:'Lei nº 13.709/2018 — disposições gerais'},
+      {id:'inf_lgpd_2', label:'Bases legais e princípios do tratamento'},
+      {id:'inf_lgpd_3', label:'Direitos dos titulares'},
+      {id:'inf_lgpd_4', label:'ANPD — autoridade nacional'},
+    ]},
+    { id:'inf_pjsc', label:'Aplicação no PJSC', subs:[
+      {id:'inf_pjsc_1', label:'Resolução TJ nº 3/2021'},
+      {id:'inf_pjsc_2', label:'Sistemas e-SAJ, PJe, e-proc'},
+    ]},
+  ]},
+
+  { disc: 'dh', topicos: [
+    { id:'dh_princ', label:'Princípios básicos dos direitos humanos', subs:[
+      {id:'dh_princ_1', label:'Universalidade, indivisibilidade, inalienabilidade'},
+      {id:'dh_princ_2', label:'Gerações / dimensões dos direitos'},
+    ]},
+    { id:'dh_prot',  label:'Proteção internacional e constitucional', subs:[
+      {id:'dh_prot_1', label:'Sistema ONU de proteção'},
+      {id:'dh_prot_2', label:'Sistema interamericano (OEA / CIDH)'},
+      {id:'dh_prot_3', label:'CF/88 — art. 5º e direitos fundamentais'},
+    ]},
+    { id:'dh_ac',    label:'Acesso à justiça e garantias processuais', subs:[
+      {id:'dh_ac_1',  label:'Inafastabilidade da jurisdição'},
+      {id:'dh_ac_2',  label:'Devido processo legal, contraditório, ampla defesa'},
+      {id:'dh_ac_3',  label:'Assistência jurídica integral e gratuita'},
+    ]},
+    { id:'dh_vuln',  label:'Igualdade e grupos vulneráveis', subs:[
+      {id:'dh_vuln_1', label:'Proteção à mulher, criança, idoso, pessoa com deficiência'},
+      {id:'dh_vuln_2', label:'Racismo e intolerância — aspectos legais'},
+    ]},
+    { id:'dh_pol',   label:'Políticas judiciárias de inclusão', subs:[]},
+  ]},
+
+  // ── MÓDULO 2 ────────────────────────────────────────────────────────────
+  { disc: 'dadm', topicos: [
+    { id:'dadm_org',  label:'Organização administrativa', subs:[
+      {id:'dadm_org_1', label:'Administração direta e indireta'},
+      {id:'dadm_org_2', label:'Centralização, descentralização e desconcentração'},
+      {id:'dadm_org_3', label:'Órgãos públicos — conceito e classificação'},
+    ]},
+    { id:'dadm_ag',   label:'Agentes públicos', subs:[
+      {id:'dadm_ag_1',  label:'Espécies e regimes jurídicos'},
+      {id:'dadm_ag_2',  label:'Cargo, emprego e função pública'},
+    ]},
+    { id:'dadm_pow',  label:'Poderes administrativos', subs:[
+      {id:'dadm_pow_1', label:'Poder discricionário e vinculado'},
+      {id:'dadm_pow_2', label:'Poder hierárquico, disciplinar e regulamentar'},
+      {id:'dadm_pow_3', label:'Poder de polícia'},
+    ]},
+    { id:'dadm_ato',  label:'Ato administrativo', subs:[
+      {id:'dadm_ato_1', label:'Conceito, elementos e atributos'},
+      {id:'dadm_ato_2', label:'Classificação dos atos'},
+      {id:'dadm_ato_3', label:'Extinção: revogação e anulação'},
+    ]},
+    { id:'dadm_lic',  label:'Licitações e contratos', subs:[
+      {id:'dadm_lic_1', label:'Lei nº 14.133/2021 — disposições gerais'},
+      {id:'dadm_lic_2', label:'Modalidades e critérios de julgamento'},
+      {id:'dadm_lic_3', label:'Dispensa e inexigibilidade'},
+      {id:'dadm_lic_4', label:'Contratos administrativos — cláusulas exorbitantes'},
+    ]},
+    { id:'dadm_pjsc', label:'Estrutura administrativa e procedimentos do PJSC', subs:[]},
+  ]},
+
+  { disc: 'dcon', topicos: [
+    { id:'dcon_princ', label:'Princípios fundamentais (arts. 1-4 CF)', subs:[]},
+    { id:'dcon_dir',   label:'Direitos e garantias fundamentais (art. 5-17 CF)', subs:[
+      {id:'dcon_dir_1', label:'Direitos individuais e coletivos'},
+      {id:'dcon_dir_2', label:'Remédios constitucionais'},
+      {id:'dcon_dir_3', label:'Direitos sociais, nacionalidade, partidos'},
+    ]},
+    { id:'dcon_org',   label:'Organização político-administrativa', subs:[
+      {id:'dcon_org_1', label:'União, estados, DF e municípios'},
+      {id:'dcon_org_2', label:'Repartição de competências'},
+    ]},
+    { id:'dcon_adm',   label:'Administração pública (art. 37-43 CF)', subs:[
+      {id:'dcon_adm_1', label:'Princípios constitucionais'},
+      {id:'dcon_adm_2', label:'Servidores públicos — regime e vedações'},
+    ]},
+    { id:'dcon_jud',   label:'Poder Judiciário', subs:[
+      {id:'dcon_jud_1', label:'Estrutura e garantias'},
+      {id:'dcon_jud_2', label:'STF, STJ e Tribunais'},
+      {id:'dcon_jud_3', label:'Estrutura do TJSC'},
+    ]},
+    { id:'dcon_cnj',   label:'CNJ — composição e atribuições', subs:[]},
+    { id:'dcon_func',  label:'Funções essenciais à justiça', subs:[
+      {id:'dcon_func_1', label:'MP, Advocacia Pública, Defensoria Pública'},
+    ]},
+  ]},
+
+  { disc: 'dciv', topicos: [
+    { id:'dciv_lindb', label:'LINDB — Lei de Introdução às Normas do Direito Brasileiro', subs:[
+      {id:'dciv_lindb_1', label:'Vigência, eficácia e aplicação das leis'},
+      {id:'dciv_lindb_2', label:'Conflito de leis no tempo e espaço'},
+    ]},
+    { id:'dciv_pes',   label:'Pessoas naturais e jurídicas', subs:[
+      {id:'dciv_pes_1',  label:'Personalidade, capacidade e incapacidade'},
+      {id:'dciv_pes_2',  label:'Pessoas jurídicas — constituição e extinção'},
+    ]},
+    { id:'dciv_bens',  label:'Bens jurídicos', subs:[]},
+    { id:'dciv_fj',    label:'Fatos e negócios jurídicos', subs:[
+      {id:'dciv_fj_1',  label:'Elementos essenciais'},
+      {id:'dciv_fj_2',  label:'Vícios e invalidades'},
+      {id:'dciv_fj_3',  label:'Prescrição e decadência'},
+    ]},
+    { id:'dciv_proc',  label:'Tramitação de processos no TJSC', subs:[]},
+    { id:'dciv_leg',   label:'Lei nº 12.682/2012 e Decreto nº 8.539/2015', subs:[]},
+  ]},
+
+  { disc: 'dpc', topicos: [
+    { id:'dpc_geral',  label:'CPC — Disposições gerais e princípios', subs:[
+      {id:'dpc_geral_1', label:'Devido processo legal, contraditório, ampla defesa'},
+      {id:'dpc_geral_2', label:'Boa-fé processual e cooperação'},
+    ]},
+    { id:'dpc_press',  label:'Pressupostos processuais', subs:[
+      {id:'dpc_press_1', label:'Subjetivos: partes e juiz'},
+      {id:'dpc_press_2', label:'Objetivos: petição inicial, citação, competência'},
+    ]},
+    { id:'dpc_juris',  label:'Jurisdição, ação e competência', subs:[
+      {id:'dpc_juris_1', label:'Conceito e princípios da jurisdição'},
+      {id:'dpc_juris_2', label:'Condições da ação e elementos'},
+      {id:'dpc_juris_3', label:'Competência — critérios e conflito'},
+    ]},
+    { id:'dpc_coop',   label:'Cooperação internacional', subs:[
+      {id:'dpc_coop_1', label:'Carta rogatória'},
+      {id:'dpc_coop_2', label:'Auxílio direto'},
+    ]},
+    { id:'dpc_proc',   label:'Procedimento comum', subs:[
+      {id:'dpc_proc_1', label:'Petição inicial — requisitos e emenda'},
+      {id:'dpc_proc_2', label:'Citação e intimação'},
+      {id:'dpc_proc_3', label:'Resposta do réu — contestação e exceções'},
+      {id:'dpc_proc_4', label:'Audiências e instrução'},
+      {id:'dpc_proc_5', label:'Sentença — tipos e efeitos'},
+      {id:'dpc_proc_6', label:'Recursos — espécies e pressupostos'},
+    ]},
+    { id:'dpc_tut',    label:'Tutelas provisórias', subs:[
+      {id:'dpc_tut_1',  label:'Tutela de urgência (cautelar e antecipada)'},
+      {id:'dpc_tut_2',  label:'Tutela da evidência'},
+    ]},
+    { id:'dpc_exec',   label:'Execução e cumprimento de sentença', subs:[
+      {id:'dpc_exec_1', label:'Princípios da execução'},
+      {id:'dpc_exec_2', label:'Títulos executivos'},
+      {id:'dpc_exec_3', label:'Embargos à execução'},
+    ]},
+  ]},
+
+  { disc: 'dpen', topicos: [
+    { id:'dpen_lei',   label:'Aplicação da lei penal', subs:[
+      {id:'dpen_lei_1', label:'Lei penal no tempo — retroatividade benigna'},
+      {id:'dpen_lei_2', label:'Lei penal no espaço — territorialidade'},
+    ]},
+    { id:'dpen_teo',   label:'Teoria do crime', subs:[
+      {id:'dpen_teo_1', label:'Tipicidade — formal e material'},
+      {id:'dpen_teo_2', label:'Ilicitude e causas excludentes'},
+      {id:'dpen_teo_3', label:'Culpabilidade — elementos e excludentes'},
+      {id:'dpen_teo_4', label:'Iter criminis: tentativa e consumação'},
+      {id:'dpen_teo_5', label:'Concurso de pessoas'},
+    ]},
+    { id:'dpen_crimes', label:'Crimes em espécie', subs:[
+      {id:'dpen_c_1',   label:'Crimes contra a pessoa (CP arts. 121-154)'},
+      {id:'dpen_c_2',   label:'Crimes contra o patrimônio (CP arts. 155-183)'},
+      {id:'dpen_c_3',   label:'Crimes contra a Administração Pública (CP arts. 312-359)'},
+    ]},
+    { id:'dpen_esp',   label:'Legislação especial', subs:[
+      {id:'dpen_esp_1', label:'Crimes hediondos — Lei 8.072/90'},
+      {id:'dpen_esp_2', label:'Abuso de autoridade — Lei 13.869/2019'},
+      {id:'dpen_esp_3', label:'ECA — Lei 8.069/90 (infrações e medidas)'},
+    ]},
+    { id:'dpen_comp',  label:'Competência das varas criminais do TJSC', subs:[]},
+  ]},
+
+  { disc: 'dpp', topicos: [
+    { id:'dpp_inq',   label:'Inquérito policial', subs:[
+      {id:'dpp_inq_1', label:'Natureza, instauração e arquivamento'},
+      {id:'dpp_inq_2', label:'Procedimentos investigatórios'},
+    ]},
+    { id:'dpp_ap',    label:'Ação penal', subs:[
+      {id:'dpp_ap_1',  label:'Pública incondicionada e condicionada'},
+      {id:'dpp_ap_2',  label:'Ação penal privada e subsidiária'},
+      {id:'dpp_ap_3',  label:'Prazo para oferecimento de denúncia'},
+    ]},
+    { id:'dpp_suj',   label:'Sujeitos do processo penal', subs:[
+      {id:'dpp_suj_1', label:'Juiz, MP, acusado e defensor'},
+      {id:'dpp_suj_2', label:'Assistente de acusação'},
+    ]},
+    { id:'dpp_cit',   label:'Citações e intimações', subs:[
+      {id:'dpp_cit_1', label:'Modalidades de citação'},
+      {id:'dpp_cit_2', label:'Intimação das partes'},
+    ]},
+    { id:'dpp_proc',  label:'Procedimentos e instrução', subs:[
+      {id:'dpp_proc_1', label:'Procedimento comum ordinário e sumário'},
+      {id:'dpp_proc_2', label:'Instrução criminal — audiência una'},
+      {id:'dpp_proc_3', label:'Sentença — absolvição e condenação'},
+    ]},
+    { id:'dpp_juri',  label:'Tribunal do Júri', subs:[
+      {id:'dpp_juri_1', label:'Pronúncia, impronúncia e desclassificação'},
+      {id:'dpp_juri_2', label:'Plenário — debates e votação'},
+    ]},
+    { id:'dpp_pris',  label:'Prisão e liberdade provisória', subs:[
+      {id:'dpp_pris_1', label:'Prisão em flagrante'},
+      {id:'dpp_pris_2', label:'Prisão preventiva — requisitos'},
+      {id:'dpp_pris_3', label:'Prisão temporária'},
+      {id:'dpp_pris_4', label:'Liberdade provisória e fiança'},
+    ]},
+    { id:'dpp_hc',    label:'Habeas corpus e recursos', subs:[
+      {id:'dpp_hc_1',  label:'Habeas corpus — cabimento e tramitação'},
+      {id:'dpp_hc_2',  label:'Recursos em geral: RESE, apelação, embargos'},
+    ]},
+    { id:'dpp_serv',  label:'Crimes de responsabilidade de servidores', subs:[]},
+    { id:'dpp_const', label:'Disposições constitucionais aplicáveis', subs:[]},
+  ]},
+];
+
+// ─── PERSISTÊNCIA DO CHECKLIST ────────────────────────────────────────────────
+// DB.checklist = { [itemId]: status }
+// itemId = tópico.id (se sem subs) ou subtópico.id
+// DECISÃO: não duplicar dados — status da disciplina é SEMPRE derivado dos itens.
+
+function ensureCL() {
+  if (!DB.checklist) DB.checklist = {};
+}
+
+function clGetStatus(itemId) {
+  ensureCL();
+  return DB.checklist[itemId] || 'n-iniciado';
+}
+
+function clSetStatus(itemId, status) {
+  ensureCL();
+  DB.checklist[itemId] = status;
+  saveDB();
+}
+
+function clCycleStatus(itemId) {
+  const cur = clGetStatus(itemId);
+  const idx = STATUS_EDITAL.indexOf(cur);
+  const next = STATUS_EDITAL[(idx + 1) % STATUS_EDITAL.length];
+  clSetStatus(itemId, next);
+  return next;
+}
+
+// ─── CÁLCULO DE PROGRESSO POR DISCIPLINA ─────────────────────────────────────
+// Retorna { total, dominado, estudado, pctDom, pctEst, statusDisc }
+// statusDisc é derivado automaticamente dos itens — NÃO usa DB.edital_status.
+// REGRA: statusDisc = o status que representa ≥70% dos itens pela ordem crescente.
+function clDiscProgress(discKey) {
+  ensureCL();
+  const discData = CHECKLIST_DATA.find(d => d.disc === discKey);
+  if (!discData) return { total:0, dominado:0, estudado:0, pctDom:0, pctEst:0, statusDisc:'n-iniciado' };
+
+  const items = [];
+  discData.topicos.forEach(t => {
+    if (t.subs.length === 0) {
+      items.push(t.id);
+    } else {
+      t.subs.forEach(s => items.push(s.id));
+    }
+  });
+
+  const total     = items.length;
+  const counts    = { 'n-iniciado':0, 'estudando':0, 'revisado':0, 'testado':0, 'dominado':0 };
+  items.forEach(id => { const st = clGetStatus(id); counts[st] = (counts[st]||0) + 1; });
+
+  const dominado  = counts['dominado'];
+  const estudado  = total - counts['n-iniciado'];
+  const pctDom    = total > 0 ? Math.round(dominado/total*100) : 0;
+  const pctEst    = total > 0 ? Math.round(estudado/total*100) : 0;
+
+  // REGRA de status automático da disciplina:
+  // - Tudo não iniciado  → n-iniciado
+  // - ≥1 item estudado   → estudando
+  // - ≥60% revisado+     → revisado
+  // - ≥60% testado+      → testado
+  // - ≥80% dominado      → dominado
+  let statusDisc = 'n-iniciado';
+  if (estudado > 0)                                                         statusDisc = 'estudando';
+  if ((counts['revisado']+counts['testado']+counts['dominado'])/total>=0.6) statusDisc = 'revisado';
+  if ((counts['testado']+counts['dominado'])/total >= 0.6)                  statusDisc = 'testado';
+  if (dominado/total >= 0.8)                                                statusDisc = 'dominado';
+
+  return { total, dominado, estudado, pctDom, pctEst, statusDisc, counts };
+}
+
+// Progresso global somando todos os itens
+function clGlobalProgress() {
+  ensureCL();
+  let total=0, dominado=0, estudado=0;
+  // Ponderado por questões da disciplina para refletir impacto real na prova
+  let totalQs=0, domQs=0, estQs=0;
+  CHECKLIST_DATA.forEach(d => {
+    const disc = DISCIPLINAS.find(x=>x.key===d.disc);
+    const qs   = disc?.qs || 1;
+    const prog = clDiscProgress(d.disc);
+    total    += prog.total;
+    dominado += prog.dominado;
+    estudado += prog.estudado;
+    totalQs  += prog.total * qs;
+    domQs    += prog.dominado * qs;
+    estQs    += prog.estudado * qs;
+  });
+  return {
+    total, dominado, estudado,
+    pctDom: total>0 ? Math.round(dominado/total*100) : 0,
+    pctEst: total>0 ? Math.round(estudado/total*100)  : 0,
+    // Ponderado por questões (mais relevante para concurso)
+    pctDomQ: totalQs>0 ? Math.round(domQs/totalQs*100) : 0,
+    pctEstQ: totalQs>0 ? Math.round(estQs/totalQs*100) : 0,
+  };
+}
+
+// Atualiza DB.edital_status[disc] automaticamente a partir do checklist
+// Chamado após qualquer alteração de item — mantém a integração com prioridade.
+function clSyncDiscStatus(discKey) {
+  const prog = clDiscProgress(discKey);
+  DB.edital_status[discKey] = prog.statusDisc;
+  saveDB();
+}
+
+// ─── INTEGRAÇÃO COM SCORE DE PRIORIDADE ──────────────────────────────────────
+// Patch do computeScore original: agora lê pctDom do checklist para o Fator 4.
+// O STATUS_FATOR original usava o status da disciplina; agora usamos % diretamente
+// se houver dados de checklist, mantendo retrocompatibilidade se não houver.
+const _origComputeScore = computeScore;
+// (sem sobrescrita — integração via clSyncDiscStatus que atualiza DB.edital_status)
+
+// ─── RENDER FUNCTIONS ────────────────────────────────────────────────────────
+let clActiveDisc = null; // disciplina selecionada no painel esquerdo
+
+function renderChecklist() {
+  // Se não há disciplina selecionada, selecionar a primeira
+  if (!clActiveDisc) clActiveDisc = DISCIPLINAS[0].key;
+  renderCLNav();
+  renderCLGlobalBar();
+  renderCLContent(clActiveDisc);
+}
+
+function renderCLNav() {
+  const mods = [1, 2];
+  let html = '';
+  mods.forEach(m => {
+    const label = m===1 ? 'Módulo 1 — Gerais' : 'Módulo 2 — Específicos';
+    html += `<div class="cl-disc-mod-sep">${label}</div>`;
+    DISCIPLINAS.filter(d=>d.mod===m).forEach(d => {
+      const prog = clDiscProgress(d.key);
+      const isActive = d.key === clActiveDisc;
+      const cor = m===1 ? 'var(--accent)' : 'var(--purple)';
+      const stCls = `s-${prog.statusDisc}`;
+      html += `<div class="cl-disc-item ${isActive?'active':''}" onclick="clSelectDisc('${d.key}')">
+        <div style="flex:1;min-width:0">
+          <div class="cl-disc-name" style="margin-bottom:3px">${d.label.replace(/Noções de /g,'')}</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div style="flex:1;height:2px;background:var(--surface3);border-radius:1px">
+              <div style="height:100%;width:${prog.pctDom}%;background:${cor};border-radius:1px;transition:width .4s"></div>
+            </div>
+            <span style="font-family:var(--font-mono);font-size:8px;color:${isActive?'var(--accent)':'var(--text3)'}">
+              ${prog.pctDom}%
+            </span>
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+  document.getElementById('cl-disc-nav').innerHTML = html;
+}
+
+function renderCLGlobalBar() {
+  const g = clGlobalProgress();
+  document.getElementById('cl-global-bar').innerHTML = `
+    <div class="cl-global-stat">
+      <div class="cl-global-stat-val" style="color:var(--accent)">${g.pctEstQ}%</div>
+      <div class="cl-global-stat-label">Estudado</div>
+    </div>
+    <div class="cl-global-stat">
+      <div class="cl-global-stat-val" style="color:var(--green)">${g.pctDomQ}%</div>
+      <div class="cl-global-stat-label">Dominado</div>
+    </div>
+    <div class="cl-global-stat">
+      <div class="cl-global-stat-val" style="color:var(--text2)">${g.dominado}</div>
+      <div class="cl-global-stat-label">Itens dom.</div>
+    </div>
+    <div class="cl-global-stat">
+      <div class="cl-global-stat-val" style="color:var(--text2)">${g.total - g.dominado}</div>
+      <div class="cl-global-stat-label">Restantes</div>
+    </div>
+    <div class="cl-global-bars">
+      <div class="cl-global-bar-row">
+        <span class="cl-global-bar-label">Estudado</span>
+        <div class="cl-global-bar-bg"><div class="cl-global-bar-fill" style="width:${g.pctEstQ}%;background:var(--accent)"></div></div>
+        <span class="cl-global-bar-pct" style="color:var(--accent)">${g.pctEstQ}%</span>
+      </div>
+      <div class="cl-global-bar-row">
+        <span class="cl-global-bar-label">Dominado</span>
+        <div class="cl-global-bar-bg"><div class="cl-global-bar-fill" style="width:${g.pctDomQ}%;background:var(--green)"></div></div>
+        <span class="cl-global-bar-pct" style="color:var(--green)">${g.pctDomQ}%</span>
+      </div>
+    </div>`;
+}
+
+function renderCLContent(discKey) {
+  const disc     = DISCIPLINAS.find(d=>d.key===discKey);
+  const discData = CHECKLIST_DATA.find(d=>d.disc===discKey);
+  if (!disc || !discData) return;
+
+  const prog = clDiscProgress(discKey);
+  const cor  = disc.mod===1 ? 'var(--accent)' : 'var(--purple)';
+
+  // Ações em massa
+  const bulkHtml = `<div class="cl-bulk-actions">
+    <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3)">Marcar todos como:</span>
+    ${STATUS_EDITAL.map(s =>
+      `<button class="btn btn-ghost btn-sm" onclick="clBulkSet('${discKey}','${s}')">${STATUS_LABEL[s]}</button>`
+    ).join('')}
+    <span class="cl-bulk-sep"></span>
+    <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3)">${prog.dominado}/${prog.total} dominados</span>
+  </div>`;
+
+  // Tópicos
+  const topicosHtml = discData.topicos.map(t => {
+    if (t.subs.length === 0) {
+      // Item direto — sem subtópicos
+      const st = clGetStatus(t.id);
+      return `<div class="cl-topic">
+        <div class="cl-direct-item">
+          <div style="flex:1">
+            <span class="cl-direct-label">${t.label}</span>
+          </div>
+          <span class="cl-sub-status status-badge s-${st}" onclick="clItemClick('${t.id}','${discKey}')">${STATUS_LABEL[st]}</span>
+        </div>
+      </div>`;
+    }
+
+    // Tópico com subtópicos
+    const subStatuses = t.subs.map(s => clGetStatus(s.id));
+    const domCount    = subStatuses.filter(s=>s==='dominado').length;
+    const estCount    = t.subs.length - subStatuses.filter(s=>s==='n-iniciado').length;
+    const pctTopico   = t.subs.length > 0 ? Math.round(domCount/t.subs.length*100) : 0;
+    // Status agregado do tópico (mesmo algoritmo do disc, simplificado)
+    let stTopico = 'n-iniciado';
+    if (estCount > 0) stTopico = 'estudando';
+    if ((subStatuses.filter(s=>['revisado','testado','dominado'].includes(s)).length/t.subs.length)>=0.6) stTopico='revisado';
+    if ((subStatuses.filter(s=>['testado','dominado'].includes(s)).length/t.subs.length)>=0.6) stTopico='testado';
+    if (domCount/t.subs.length >= 0.8) stTopico='dominado';
+
+    const subItemsHtml = t.subs.map(s => {
+      const ss = clGetStatus(s.id);
+      return `<div class="cl-sub-item">
+        <span class="cl-sub-label">${s.label}</span>
+        <span class="cl-sub-status s-${ss}" onclick="clItemClick('${s.id}','${discKey}')">${STATUS_LABEL[ss]}</span>
+      </div>`;
+    }).join('');
+
+    return `<div class="cl-topic">
+      <div class="cl-topic-header" onclick="clToggleTopic('${t.id}')">
+        <svg class="cl-topic-chevron" id="chev-${t.id}" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 2l4 3-4 3"/></svg>
+        <span class="cl-topic-label">${t.label}</span>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3)">${domCount}/${t.subs.length}</span>
+        <div class="cl-topic-bar"><div class="cl-topic-bar-fill" style="width:${pctTopico}%;background:${cor}"></div></div>
+        <span class="cl-topic-status status-badge s-${stTopico}">${STATUS_LABEL[stTopico]}</span>
+      </div>
+      <div class="cl-subtopics" id="subs-${t.id}">
+        ${subItemsHtml}
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('cl-content').innerHTML = `
+    <div class="cl-disc-header">
+      <div class="cl-disc-title">${disc.label}</div>
+      <div class="cl-disc-meta">
+        <span class="cl-disc-meta-item">${disc.qs} questões · <span>${Math.round(disc.peso*100)}%</span> da prova</span>
+        <span class="cl-disc-meta-item">Itens estudados: <span>${prog.estudado}/${prog.total}</span></span>
+        <span class="cl-disc-meta-item">Dominados: <span>${prog.dominado}/${prog.total}</span></span>
+        <div class="cl-progress-bar-wrap">
+          <div class="cl-progress-bar-fill" style="width:${prog.pctDom}%;background:${cor}"></div>
+        </div>
+        <span class="cl-disc-meta-item" style="color:${cor};font-weight:500">${prog.pctDom}% dominado</span>
+      </div>
+    </div>
+    ${bulkHtml}
+    ${topicosHtml}`;
+}
+
+// ─── INTERAÇÕES ───────────────────────────────────────────────────────────────
+function clSelectDisc(discKey) {
+  clActiveDisc = discKey;
+  renderCLNav();
+  renderCLContent(discKey);
+}
+
+function clToggleTopic(topicId) {
+  const subsEl  = document.getElementById('subs-'+topicId);
+  const chevEl  = document.getElementById('chev-'+topicId);
+  if (!subsEl) return;
+  const isOpen = subsEl.classList.toggle('open');
+  chevEl?.classList.toggle('open', isOpen);
+}
+
+function clItemClick(itemId, discKey) {
+  const newStatus = clCycleStatus(itemId);
+  // Sincroniza status da disciplina com checklist
+  clSyncDiscStatus(discKey);
+  // Re-render local sem recarregar tudo
+  renderCLContent(discKey);
+  renderCLNav();
+  renderCLGlobalBar();
+  showToast(STATUS_LABEL[newStatus]);
+}
+
+function clBulkSet(discKey, status) {
+  ensureCL();
+  const discData = CHECKLIST_DATA.find(d=>d.disc===discKey);
+  if (!discData) return;
+  discData.topicos.forEach(t => {
+    if (t.subs.length === 0) {
+      DB.checklist[t.id] = status;
+    } else {
+      t.subs.forEach(s => { DB.checklist[s.id] = status; });
+    }
+  });
+  clSyncDiscStatus(discKey);
+  renderCLContent(discKey);
+  renderCLNav();
+  renderCLGlobalBar();
+  showToast(`${DISCIPLINAS.find(d=>d.key===discKey)?.label} → ${STATUS_LABEL[status]}`);
+}
+
+// ─── INTEGRAÇÃO: STATS DASHBOARD ─────────────────────────────────────────────
+// Patch da renderStats para exibir % de itens dominados (checklist) em vez de
+// apenas disciplinas. Sobrescreve a função original que usa DB.edital_status.
+const _origRenderStats = renderStats;
+renderStats = function() {
+  const today   = dayStr(0);
+  const w7      = dayStr(7);
+  const w30     = dayStr(30);
+  const minHoje   = DB.sessoes.filter(s=>s.data===today).reduce((a,s)=>a+s.dur,0);
+  const minSemana = DB.sessoes.filter(s=>s.data>=w7).reduce((a,s)=>a+s.dur,0);
+  const minMes    = DB.sessoes.filter(s=>s.data>=w30).reduce((a,s)=>a+s.dur,0);
+  const diasSet   = new Set(DB.sessoes.filter(s=>s.data>=w7).map(s=>s.data));
+  const metaDia   = DB.config.meta_dia || 120;
+  const metaPct   = Math.min(100, Math.round(minHoje/metaDia*100));
+  // Usa checklist se disponível, caso contrário usa disciplinas
+  const g = clGlobalProgress();
+  const pctEdital = g.total > 0 ? g.pctEstQ : Math.round(DISCIPLINAS.filter(d=>DB.edital_status[d.key]!=='n-iniciado').length/DISCIPLINAS.length*100);
+  const pctDom    = g.total > 0 ? g.pctDomQ : Math.round(DISCIPLINAS.filter(d=>DB.edital_status[d.key]==='dominado').length/DISCIPLINAS.length*100);
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card ${metaPct>=100?'highlight':''}">
+      <div class="stat-label">Hoje</div>
+      <div class="stat-value">${fmtMin(minHoje)}</div>
+      <div class="stat-sub">meta: ${metaPct}%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">7 dias</div>
+      <div class="stat-value">${fmtMin(minSemana)}</div>
+      <div class="stat-sub">${fmtMin(DB.config.meta_semana||600)} meta</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">30 dias</div>
+      <div class="stat-value">${fmtMin(minMes)}</div>
+      <div class="stat-sub">último mês</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Consistência</div>
+      <div class="stat-value">${diasSet.size}<span style="font-size:12px;color:var(--text3)">/7</span></div>
+      <div class="stat-sub">dias com estudo</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="stat-label">Edital</div>
+      <div class="stat-value">${pctEdital}<span style="font-size:12px;color:var(--text3)">%</span></div>
+      <div class="stat-sub">${pctDom}% dominado</div>
+    </div>`;
+};
+
+// ─── ROUTING PATCH ────────────────────────────────────────────────────────────
+// Adiciona 'checklist' ao showView sem modificar o original
+const _origShowView = showView;
+showView = function(v) {
+  _origShowView(v);
+  if (v === 'checklist') {
+    // Override title (já foi chamado pelo orig)
+    document.getElementById('topbar-title').textContent = 'Checklist do Edital';
+    document.getElementById('topbar-actions').innerHTML = '';
+    renderChecklist();
+  }
+};
 
 // ─── INIT ───────────────────────────────────────────────────────────────────
 seedDemo();
