@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STracker – TJ-SC</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── DESIGN TOKENS ─────────────────────────────────────────────────────────
+   Shifted from green (ENEM) to steel-blue (Judiciário) — precision over growth.
+   Accent: #38bdf8 (sky-400) — leitura limpa, remete a selos e documentos oficiais.
+──────────────────────────────────────────────────────────────────────────── */
+:root {
+  --bg:          #0b0d10;
+  --surface:     #13151a;
+  --surface2:    #1a1d24;
+  --surface3:    #21252e;
+  --border:      #252932;
+  --border2:     #323847;
+  --text:        #dde2ee;
+  --text2:       #7d8699;
+  --text3:       #464e60;
+  --accent:      #38bdf8;
+  --accent2:     #0ea5e9;
+  --accent-dim:  rgba(56,189,248,0.10);
+  --amber:       #fbbf24;
+  --amber-dim:   rgba(251,191,36,0.11);
+  --red:         #f87171;
+  --red-dim:     rgba(248,113,113,0.11);
+  --green:       #4ade80;
+  --green-dim:   rgba(74,222,128,0.11);
+  --purple:      #a78bfa;
+  --purple-dim:  rgba(167,139,250,0.11);
+  --radius:      5px;
+  --font-mono:   'IBM Plex Mono', monospace;
+  --font-sans:   'IBM Plex Sans', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--text);height:100vh;display:flex;overflow:hidden}
+
+/* ─── LAYOUT ─────────────────────────────────────────────────────────────── */
+.sidebar{width:210px;min-width:210px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 0}
+.sidebar-logo{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.16em;color:var(--accent);padding:0 20px 18px;border-bottom:1px solid var(--border);text-transform:uppercase;line-height:1.6}
+.sidebar-logo small{color:var(--text3);display:block;font-weight:400;font-size:9px;margin-top:3px;letter-spacing:.06em;text-transform:none}
+.nav{display:flex;flex-direction:column;gap:2px;padding:12px 10px;flex:1}
+.nav-sep{font-family:var(--font-mono);font-size:8px;letter-spacing:.14em;color:var(--text3);text-transform:uppercase;padding:10px 10px 4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:12px;font-weight:400;transition:all .14s;border:none;background:none;text-align:left;width:100%}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--accent-dim);color:var(--accent)}
+.nav-item svg{width:14px;height:14px;flex-shrink:0;opacity:.65}
+.nav-item.active svg{opacity:1}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.main::-webkit-scrollbar{width:3px}
+.main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.view{display:none;padding:26px 30px;flex:1}
+.view.active{display:block}
+
+/* ─── TOPBAR ─────────────────────────────────────────────────────────────── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 30px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:10}
+.topbar-title{font-family:var(--font-mono);font-size:11px;letter-spacing:.09em;color:var(--text2);text-transform:uppercase}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:var(--radius);font-family:var(--font-mono);font-size:11px;font-weight:500;letter-spacing:.04em;cursor:pointer;border:1px solid transparent;transition:all .14s}
+.btn-primary{background:var(--accent);color:#05111a;border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent2)}
+.btn-ghost{background:transparent;color:var(--text2);border-color:var(--border2)}
+.btn-ghost:hover{color:var(--text);background:var(--surface2)}
+.btn-danger{background:transparent;color:var(--red);border-color:var(--red-dim)}
+.btn-danger:hover{background:var(--red-dim)}
+.btn-sm{padding:4px 10px;font-size:10px}
+
+/* ─── COUNTDOWN ──────────────────────────────────────────────────────────── */
+.countdown-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.countdown-left{display:flex;flex-direction:column;gap:3px}
+.countdown-label{font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase}
+.countdown-title{font-family:var(--font-mono);font-size:12px;color:var(--text);font-weight:500}
+.countdown-sub{font-family:var(--font-mono);font-size:10px;color:var(--text3)}
+.countdown-units{display:flex;gap:16px;align-items:flex-end}
+.countdown-unit{text-align:center}
+.countdown-num{font-family:var(--font-mono);font-size:24px;font-weight:600;color:var(--accent);line-height:1}
+.countdown-unit-label{font-family:var(--font-mono);font-size:9px;color:var(--text3);letter-spacing:.07em;text-transform:uppercase;margin-top:2px}
+.countdown-divider{font-family:var(--font-mono);font-size:18px;color:var(--text3);padding-bottom:4px}
+
+/* ─── STATS GRID ─────────────────────────────────────────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.stat-label{font-family:var(--font-mono);font-size:8px;letter-spacing:.11em;color:var(--text3);text-transform:uppercase;margin-bottom:7px}
+.stat-value{font-family:var(--font-mono);font-size:19px;font-weight:600;color:var(--text);line-height:1}
+.stat-sub{font-size:10px;color:var(--text3);margin-top:3px}
+.stat-card.highlight .stat-value{color:var(--accent)}
+.stat-card.highlight{border-color:rgba(56,189,248,.2)}
+
+/* ─── SECTION HEADERS ────────────────────────────────────────────────────── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.section-title{font-family:var(--font-mono);font-size:9px;letter-spacing:.13em;color:var(--text3);text-transform:uppercase}
+
+/* ─── EDITAL PROGRESS ────────────────────────────────────────────────────── */
+.edital-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.edital-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px}
+.edital-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.edital-name{font-size:12px;font-weight:500;color:var(--text)}
+.edital-peso{font-family:var(--font-mono);font-size:9px;color:var(--text3)}
+.edital-bar-bg{height:3px;background:var(--surface3);border-radius:2px;margin-bottom:7px}
+.edital-bar-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.edital-stats{display:flex;gap:10px;margin-bottom:7px}
+.edital-stat{font-family:var(--font-mono);font-size:9px;color:var(--text3)}
+.edital-stat span{color:var(--text2)}
+.disc-pills{display:flex;flex-wrap:wrap;gap:3px}
+.disc-pill{font-family:var(--font-mono);font-size:8px;padding:2px 6px;border-radius:3px;background:var(--surface2);color:var(--text3);border:1px solid var(--border);cursor:pointer;transition:all .14s;white-space:nowrap}
+.disc-pill:hover{border-color:var(--border2);color:var(--text2)}
+/* Status colors for disc-pills */
+.disc-pill.s-estudando {border-color:rgba(56,189,248,.35);color:var(--accent);background:var(--accent-dim)}
+.disc-pill.s-revisado  {border-color:rgba(251,191,36,.35);color:var(--amber);background:var(--amber-dim)}
+.disc-pill.s-testado   {border-color:rgba(167,139,250,.35);color:var(--purple);background:var(--purple-dim)}
+.disc-pill.s-dominado  {border-color:rgba(74,222,128,.35);color:var(--green);background:var(--green-dim)}
+
+/* ─── PRIORITY RANKING ───────────────────────────────────────────────────── */
+.priority-list{display:flex;flex-direction:column;gap:5px;margin-bottom:18px}
+.priority-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:9px 13px;display:flex;align-items:center;gap:10px;transition:border-color .14s;cursor:default}
+.priority-item:hover{border-color:var(--border2)}
+.priority-rank{font-family:var(--font-mono);font-size:10px;color:var(--text3);width:18px;text-align:right;flex-shrink:0}
+.priority-disc{font-size:12px;font-weight:500;flex:1}
+.priority-mod-tag{font-family:var(--font-mono);font-size:8px;padding:1px 5px;border-radius:3px;flex-shrink:0}
+.priority-status{font-family:var(--font-mono);font-size:8px;flex-shrink:0;padding:1px 6px;border-radius:3px}
+.priority-bar-wrap{width:70px;height:3px;background:var(--surface3);border-radius:2px;flex-shrink:0}
+.priority-bar{height:100%;border-radius:2px}
+.priority-days{font-family:var(--font-mono);font-size:9px;color:var(--text3);flex-shrink:0;width:56px;text-align:right}
+.priority-item.rank-1{border-color:rgba(56,189,248,.3);background:rgba(56,189,248,.04)}
+.priority-item.rank-1 .priority-disc{color:var(--accent)}
+
+/* ─── SEMANA BAR ─────────────────────────────────────────────────────────── */
+.semana-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:18px}
+.semana-day{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:6px 3px;text-align:center}
+.semana-day-label{font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em}
+.semana-day-min{font-family:var(--font-mono);font-size:10px;color:var(--text3)}
+.semana-day.has-study{border-color:rgba(56,189,248,.28)}
+.semana-day.has-study .semana-day-min{color:var(--accent)}
+.semana-day.today{border-color:var(--border2)}
+.semana-day.today .semana-day-label{color:var(--text2)}
+
+/* ─── SESSIONS LIST ──────────────────────────────────────────────────────── */
+.sessions-list{display:flex;flex-direction:column;gap:5px}
+.session-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:9px 13px;display:flex;align-items:center;gap:10px}
+.session-date{font-family:var(--font-mono);font-size:9px;color:var(--text3);width:38px;flex-shrink:0}
+.session-disc{font-size:12px;flex:1}
+.session-tipo{font-family:var(--font-mono);font-size:9px;color:var(--text3)}
+.session-dur{font-family:var(--font-mono);font-size:10px;color:var(--text2);flex-shrink:0}
+.session-q{font-family:var(--font-mono);font-size:9px;color:var(--text3);flex-shrink:0}
+
+/* ─── ERROS LIST ─────────────────────────────────────────────────────────── */
+.erros-list{display:flex;flex-direction:column;gap:5px}
+.erro-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;display:flex;align-items:flex-start;gap:10px}
+.erro-item.revisado{opacity:.4}
+.erro-check{width:15px;height:15px;border-radius:3px;border:1px solid var(--border2);background:var(--surface2);cursor:pointer;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .14s}
+.erro-check.checked{background:var(--accent);border-color:var(--accent)}
+.erro-check svg{width:9px;height:9px}
+.erro-body{flex:1;min-width:0}
+.erro-meta{display:flex;gap:6px;align-items:center;margin-bottom:3px;flex-wrap:wrap}
+.erro-disc{font-size:12px;font-weight:500}
+.erro-cat{font-family:var(--font-mono);font-size:8px;padding:1px 5px;border-radius:3px}
+.erro-lei{font-family:var(--font-mono);font-size:9px;color:var(--text3)}
+.erro-tema{font-size:11px;color:var(--text2)}
+.erro-obs{font-size:11px;color:var(--text3);margin-top:2px;font-style:italic}
+.erro-date{font-family:var(--font-mono);font-size:9px;color:var(--text3);flex-shrink:0}
+
+/* ─── FILTER BAR ─────────────────────────────────────────────────────────── */
+.filter-bar{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.filter-pill{font-family:var(--font-mono);font-size:9px;padding:3px 9px;border-radius:3px;border:1px solid var(--border2);background:var(--surface2);color:var(--text3);cursor:pointer;transition:all .14s}
+.filter-pill.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.filter-sep{flex:1}
+
+/* ─── SIMULADOS ──────────────────────────────────────────────────────────── */
+.simulado-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 17px;margin-bottom:9px}
+.simulado-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px}
+.simulado-name{font-size:12px;font-weight:500}
+.simulado-meta{font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-top:2px}
+.simulado-discs{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.sim-disc{text-align:center;padding:5px 3px;background:var(--surface2);border-radius:3px;border:1px solid var(--border)}
+.sim-disc-name{font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-bottom:3px;line-height:1.2}
+.sim-disc-nota{font-family:var(--font-mono);font-size:13px;font-weight:600}
+.sim-disc-detail{font-family:var(--font-mono);font-size:8px;color:var(--text3);margin-top:1px}
+.sim-total-bar{margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.sim-total-label{font-family:var(--font-mono);font-size:9px;color:var(--text3)}
+.sim-total-bar-bg{flex:1;height:4px;background:var(--surface3);border-radius:2px}
+.sim-total-bar-fill{height:100%;border-radius:2px;transition:width .4s}
+.sim-total-pct{font-family:var(--font-mono);font-size:11px;font-weight:600}
+
+/* ─── EDITAL STATUS VIEW ─────────────────────────────────────────────────── */
+.edital-table{width:100%;border-collapse:collapse;margin-bottom:18px}
+.edital-table th{font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;padding:6px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.edital-table td{padding:8px 10px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
+.edital-table tr:last-child td{border-bottom:none}
+.edital-table tr:hover td{background:var(--surface2)}
+.status-badge{font-family:var(--font-mono);font-size:8px;padding:2px 7px;border-radius:3px;cursor:pointer;transition:all .14s;white-space:nowrap}
+.peso-badge{font-family:var(--font-mono);font-size:9px;color:var(--text3)}
+.q-badge{font-family:var(--font-mono);font-size:9px;color:var(--text3)}
+.progress-mini-bg{width:60px;height:3px;background:var(--surface3);border-radius:2px;display:inline-block;vertical-align:middle}
+.progress-mini-fill{height:100%;border-radius:2px}
+
+/* ─── CONFIG ─────────────────────────────────────────────────────────────── */
+.config-section{margin-bottom:22px}
+.config-section-title{font-family:var(--font-mono);font-size:9px;letter-spacing:.11em;color:var(--text3);text-transform:uppercase;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.config-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.config-label{font-size:12px;flex:1}
+.config-input{width:72px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:5px 8px;color:var(--text);font-family:var(--font-mono);font-size:12px;text-align:center;outline:none}
+.config-input:focus{border-color:var(--accent)}
+.config-select{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:5px 8px;color:var(--text);font-family:var(--font-sans);font-size:12px;outline:none;width:180px}
+.config-select:focus{border-color:var(--accent)}
+
+/* ─── MODAL ──────────────────────────────────────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:22px;width:460px;max-width:calc(100vw - 30px);max-height:calc(100vh - 40px);overflow-y:auto}
+.modal::-webkit-scrollbar{width:3px}
+.modal::-webkit-scrollbar-thumb{background:var(--border2)}
+.modal-title{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.form-group{margin-bottom:12px}
+.form-label{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;margin-bottom:5px;display:block}
+.form-control{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:7px 10px;color:var(--text);font-family:var(--font-sans);font-size:12px;outline:none;transition:border-color .14s;-webkit-appearance:none;appearance:none}
+.form-control:focus{border-color:var(--accent)}
+select.form-control{cursor:pointer}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.form-footer{display:flex;gap:7px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+.form-hint{font-size:10px;color:var(--text3);margin-top:3px}
+.form-divider{border:none;border-top:1px solid var(--border);margin:14px 0}
+.toggle-expand{background:none;border:none;cursor:pointer;color:var(--text3);font-family:var(--font-mono);font-size:9px;letter-spacing:.04em;display:flex;align-items:center;gap:5px;padding:0;margin-bottom:12px}
+.toggle-expand:hover{color:var(--text2)}
+.collapsible{display:none}
+.collapsible.open{display:block}
+.questao-block{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px;margin-bottom:7px}
+.questao-block-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.questao-block-label{font-family:var(--font-mono);font-size:9px;color:var(--text3)}
+.questao-remove{background:none;border:none;cursor:pointer;color:var(--text3);font-size:13px;line-height:1;padding:0}
+.questao-remove:hover{color:var(--red)}
+
+/* ─── STATUS SYSTEM ──────────────────────────────────────────────────────── */
+/* Mapeamento: n-iniciado | estudando | revisado | testado | dominado */
+.s-n-iniciado{background:var(--surface2);color:var(--text3);border:1px solid var(--border)}
+.s-estudando  {background:var(--accent-dim);color:var(--accent);border:1px solid rgba(56,189,248,.3)}
+.s-revisado   {background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,.3)}
+.s-testado    {background:var(--purple-dim);color:var(--purple);border:1px solid rgba(167,139,250,.3)}
+.s-dominado   {background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,.3)}
+
+/* ─── TOAST ──────────────────────────────────────────────────────────────── */
+.toast{position:fixed;bottom:18px;right:18px;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--radius);padding:9px 15px;font-family:var(--font-mono);font-size:10px;color:var(--accent);z-index:200;transform:translateY(50px);opacity:0;transition:all .22s;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ─── EMPTY STATE ────────────────────────────────────────────────────────── */
+.empty{text-align:center;padding:44px 20px;color:var(--text3)}
+.empty p{font-size:12px;line-height:1.7;margin-top:8px}
+
+/* ─── MISC ───────────────────────────────────────────────────────────────── */
+.tag-mod1{background:rgba(56,189,248,.12);color:var(--accent);border:1px solid rgba(56,189,248,.25)}
+.tag-mod2{background:rgba(167,139,250,.12);color:var(--purple);border:1px solid rgba(167,139,250,.25)}
+.inline-num{font-family:var(--font-mono)}
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══════════════════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    STracker<br>
+    <small>TJ-SC · Téc. Judiciário Aux.</small>
+  </div>
+  <nav class="nav">
+    <button class="nav-item active" onclick="showView('dashboard')" data-view="dashboard">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="showView('edital')" data-view="edital">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 2h10a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M5 6h6M5 9h4"/></svg>
+      Edital
+    </button>
+    <button class="nav-item" onclick="showView('sessoes')" data-view="sessoes">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>
+      Sessões
+    </button>
+    <button class="nav-item" onclick="showView('erros')" data-view="erros">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1L15 13H1L8 1z"/><path d="M8 6v3M8 11v.5"/></svg>
+      Caderno de Erros
+    </button>
+    <button class="nav-item" onclick="showView('simulados')" data-view="simulados">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L5 7l3 3 2-4 4 6"/><rect x="1" y="1" width="14" height="14" rx="1"/></svg>
+      Simulados
+    </button>
+    <button class="nav-item" onclick="showView('config')" data-view="config">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4"/></svg>
+      Configurações
+    </button>
+  </nav>
+</aside>
+
+<!-- ═══ MAIN ═══════════════════════════════════════════════════════════════ -->
+<main class="main">
+  <div class="topbar">
+    <span class="topbar-title" id="topbar-title">Dashboard</span>
+    <div id="topbar-actions">
+      <button class="btn btn-primary" onclick="openSessaoModal()">+ Sessão</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="view active" id="view-dashboard">
+    <div id="countdown-bar"></div>
+    <div class="stats-grid" id="stats-grid"></div>
+    <div class="section-header">
+      <span class="section-title">Semana atual</span>
+    </div>
+    <div class="semana-grid" id="semana-grid"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <div>
+        <div class="section-header"><span class="section-title">Prioridade de estudo</span></div>
+        <div class="priority-list" id="priority-list"></div>
+      </div>
+      <div>
+        <div class="section-header"><span class="section-title">Progresso por módulo</span></div>
+        <div id="modulos-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDITAL -->
+  <div class="view" id="view-edital">
+    <div id="edital-fechamento-bar" style="margin-bottom:18px"></div>
+    <div class="section-header"><span class="section-title">Módulo 1 — Conhecimentos Gerais (37,5%)</span></div>
+    <table class="edital-table" id="edital-table-mod1"></table>
+    <div class="section-header" style="margin-top:16px"><span class="section-title">Módulo 2 — Conhecimentos Específicos (62,5%)</span></div>
+    <table class="edital-table" id="edital-table-mod2"></table>
+  </div>
+
+  <!-- SESSOES -->
+  <div class="view" id="view-sessoes">
+    <div class="filter-bar" id="sessoes-filters"></div>
+    <div class="sessions-list" id="sessoes-list"></div>
+  </div>
+
+  <!-- ERROS -->
+  <div class="view" id="view-erros">
+    <div class="filter-bar" id="erros-filters"></div>
+    <div class="erros-list" id="erros-list"></div>
+  </div>
+
+  <!-- SIMULADOS -->
+  <div class="view" id="view-simulados">
+    <div id="simulados-content"></div>
+  </div>
+
+  <!-- CONFIG -->
+  <div class="view" id="view-config">
+    <div class="config-section">
+      <div class="config-section-title">Concurso</div>
+      <div class="config-row">
+        <span class="config-label">Cargo</span>
+        <span style="font-size:12px;color:var(--text2)">TJ-SC · Técnico Judiciário Auxiliar</span>
+      </div>
+      <div class="config-row">
+        <span class="config-label">Data da prova</span>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--accent)">28/06/2026 · 15h–19h</span>
+      </div>
+    </div>
+    <div class="config-section">
+      <div class="config-section-title">Metas de estudo</div>
+      <div class="config-row">
+        <span class="config-label">Meta diária (min)</span>
+        <input class="config-input" id="cfg-meta-dia" type="number" min="30" max="600">
+      </div>
+      <div class="config-row">
+        <span class="config-label">Meta semanal (min)</span>
+        <input class="config-input" id="cfg-meta-semana" type="number" min="60" max="4200">
+      </div>
+    </div>
+    <div class="config-section">
+      <div class="config-section-title">Estratégia de prioridade</div>
+      <div class="config-row">
+        <span class="config-label">Foco principal</span>
+        <select class="config-select" id="cfg-estrategia">
+          <option value="pesos">Peso da disciplina (padrão)</option>
+          <option value="erros">Taxa de erros (remedial)</option>
+          <option value="abandono">Tempo sem estudar (abandono)</option>
+          <option value="balanceado">Balanceado (todos os fatores)</option>
+        </select>
+      </div>
+      <p class="form-hint" style="margin-top:4px">
+        "Balanceado" combina peso + erros + abandono + status do edital. Recomendado a partir de 60 dias antes da prova.
+      </p>
+    </div>
+    <div class="config-section">
+      <div class="config-section-title">Dados</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="exportData()">Exportar JSON</button>
+        <button class="btn btn-danger" onclick="clearData()">Limpar tudo</button>
+      </div>
+    </div>
+    <div class="form-footer" style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px;justify-content:flex-start">
+      <button class="btn btn-primary" onclick="saveConfig()">Salvar configurações</button>
+    </div>
+  </div>
+</main>
+
+<!-- ═══ MODAL SESSÃO ════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-sessao">
+  <div class="modal">
+    <div class="modal-title">Registrar sessão de estudo</div>
+    <form id="form-sessao" onsubmit="saveSessao(event)">
+      <div class="form-group">
+        <label class="form-label">Disciplina *</label>
+        <select class="form-control" id="s-disc" required></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Duração (min) *</label>
+          <input class="form-control" id="s-dur" type="number" min="5" max="600" placeholder="90" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data *</label>
+          <input class="form-control" id="s-data" type="date" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tipo de sessão *</label>
+          <select class="form-control" id="s-tipo">
+            <option value="teoria">Teoria / Leitura</option>
+            <option value="exercicio" selected>Exercícios</option>
+            <option value="revisao">Revisão</option>
+            <option value="lei_seca">Leitura de lei seca</option>
+            <option value="jurisprudencia">Jurisprudência</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Atualizar status</label>
+          <select class="form-control" id="s-status">
+            <option value="">— manter atual —</option>
+            <option value="estudando">Em estudo</option>
+            <option value="revisado">Revisado</option>
+            <option value="testado">Testado</option>
+            <option value="dominado">Dominado</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Questões praticadas</label>
+          <input class="form-control" id="s-qtotal" type="number" min="0" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Questões erradas</label>
+          <input class="form-control" id="s-qerradas" type="number" min="0" placeholder="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Material / fonte</label>
+        <input class="form-control" id="s-fonte" type="text" placeholder="ex: Estratégia Concursos – Aula 3" maxlength="80">
+        <div class="form-hint">Opcional</div>
+      </div>
+      <hr class="form-divider">
+      <button type="button" class="toggle-expand" onclick="toggleQuestoes()">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l3 3 3-3"/></svg>
+        <span id="qtoggle-label">Detalhar erros por artigo / tema</span>
+      </button>
+      <div class="collapsible" id="questoes-detail">
+        <div id="questoes-container"></div>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="addQuestao()">+ Adicionar erro</button>
+      </div>
+      <div class="form-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('sessao')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar sessão</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ MODAL SIMULADO ══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-simulado">
+  <div class="modal">
+    <div class="modal-title">Registrar simulado</div>
+    <form id="form-simulado" onsubmit="saveSimulado(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nome / referência *</label>
+          <input class="form-control" id="sim-nome" type="text" placeholder="Simulado TJ-SC #1" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data *</label>
+          <input class="form-control" id="sim-data" type="date" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tipo</label>
+          <select class="form-control" id="sim-tipo">
+            <option value="completo">Prova completa (80 q)</option>
+            <option value="modulo1">Módulo 1 — Gerais (30 q)</option>
+            <option value="modulo2">Módulo 2 — Específicos (50 q)</option>
+            <option value="disciplina">Por disciplina</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Disciplina (se aplicável)</label>
+          <select class="form-control" id="sim-disc-filter">
+            <option value="">Todas</option>
+          </select>
+        </div>
+      </div>
+      <hr class="form-divider">
+      <div id="sim-discs-form"></div>
+      <div class="form-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('simulado')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar simulado</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+//  CONSTANTES — Edital TJ-SC · Técnico Judiciário Auxiliar
+//
+//  DECISÃO DE DESIGN: Cada disciplina tem um key curto (slug) para ser usado
+//  como ID em localStorage, evitando acoplamento com label de exibição.
+//  O campo 'qs' representa o número oficial de questões no edital.
+//  O campo 'peso' é qs/80, derivado automaticamente, mas explicitado para
+//  facilitar o cálculo de prioridade sem divisão em runtime.
+// ═══════════════════════════════════════════════════════════════════════════
+const PROVA_DATE = new Date('2026-06-28T15:00:00');
+
+const DISCIPLINAS = [
+  // MÓDULO 1 – Conhecimentos Gerais
+  { key:'lp',     label:'Língua Portuguesa',                mod:1, qs:10, peso:0.125 },
+  { key:'leg',    label:'Legislação Institucional PJSC',    mod:1, qs:6,  peso:0.075 },
+  { key:'etica',  label:'Ética e Gestão Pública',           mod:1, qs:4,  peso:0.050 },
+  { key:'info',   label:'Informática e Proteção de Dados',  mod:1, qs:5,  peso:0.0625 },
+  { key:'dh',     label:'Direitos Humanos e Acesso à Just.',mod:1, qs:5,  peso:0.0625 },
+  // MÓDULO 2 – Conhecimentos Específicos
+  { key:'dadm',   label:'Direito Administrativo',           mod:2, qs:10, peso:0.125 },
+  { key:'dpc',    label:'Direito Processual Civil',         mod:2, qs:10, peso:0.125 },
+  { key:'dpp',    label:'Direito Processual Penal',         mod:2, qs:10, peso:0.125 },
+  { key:'dcon',   label:'Direito Constitucional',           mod:2, qs:8,  peso:0.100 },
+  { key:'dciv',   label:'Direito Civil',                    mod:2, qs:6,  peso:0.075 },
+  { key:'dpen',   label:'Direito Penal',                    mod:2, qs:6,  peso:0.075 },
+];
+
+const MODULOS = {
+  1: { label:'Conhecimentos Gerais',      qs:30, peso:0.375, color:'var(--accent)' },
+  2: { label:'Conhecimentos Específicos', qs:50, peso:0.625, color:'var(--purple)' },
+};
+
+// Tipos de erro específicos para concurso jurídico
+const TIPO_ERRO = {
+  lei_seca:    'Falta de lei seca',
+  confusao:    'Confusão conceitual',
+  pegadinha:   'Pegadinha de banca',
+  desatencao:  'Desatenção',
+};
+
+// Status de fechamento de edital (ordem progressiva)
+const STATUS_EDITAL = ['n-iniciado','estudando','revisado','testado','dominado'];
+const STATUS_LABEL  = { 'n-iniciado':'Não iniciado','estudando':'Em estudo','revisado':'Revisado','testado':'Testado','dominado':'Dominado' };
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  PERSISTÊNCIA
+// ═══════════════════════════════════════════════════════════════════════════
+function defaultConfig() {
+  return {
+    meta_dia:     120,
+    meta_semana:  600,
+    estrategia:   'balanceado',
+  };
+}
+
+function defaultEditalStatus() {
+  // Cada disciplina começa como 'n-iniciado'
+  const s = {};
+  DISCIPLINAS.forEach(d => s[d.key] = 'n-iniciado');
+  return s;
+}
+
+function loadDB() {
+  try {
+    const d = JSON.parse(localStorage.getItem('stracker_tjsc') || 'null');
+    if (!d) return null;
+    if (!d.config) d.config = defaultConfig();
+    if (!d.edital_status) d.edital_status = defaultEditalStatus();
+    return d;
+  } catch(e) { return null; }
+}
+
+function saveDB() { localStorage.setItem('stracker_tjsc', JSON.stringify(DB)); }
+
+let DB = loadDB() || { sessoes:[], erros:[], simulados:[], config:defaultConfig(), edital_status:defaultEditalStatus() };
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  ROTEAMENTO
+// ═══════════════════════════════════════════════════════════════════════════
+function showView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelector(`[data-view="${v}"]`)?.classList.add('active');
+
+  const titles = {
+    dashboard:'Dashboard', edital:'Fechamento de Edital',
+    sessoes:'Sessões de estudo', erros:'Caderno de Erros',
+    simulados:'Simulados', config:'Configurações',
+  };
+  document.getElementById('topbar-title').textContent = titles[v] || v;
+
+  const acts = document.getElementById('topbar-actions');
+  if (['dashboard','sessoes'].includes(v)) {
+    acts.innerHTML = '<button class="btn btn-primary" onclick="openSessaoModal()">+ Sessão</button>';
+  } else if (v === 'simulados') {
+    acts.innerHTML = '<button class="btn btn-primary" onclick="openSimuladoModal()">+ Simulado</button>';
+  } else if (v === 'config') {
+    acts.innerHTML = '<button class="btn btn-primary" onclick="saveConfig()">Salvar</button>';
+  } else {
+    acts.innerHTML = '';
+  }
+
+  const renders = {
+    dashboard: renderDashboard,
+    edital:    renderEdital,
+    sessoes:   renderSessoes,
+    erros:     renderErros,
+    simulados: renderSimulados,
+    config:    renderConfig,
+  };
+  renders[v]?.();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  COUNTDOWN
+// ═══════════════════════════════════════════════════════════════════════════
+function renderCountdown() {
+  const now = new Date();
+  const diff = PROVA_DATE - now;
+  const totalDias = Math.ceil(diff / 86400000);
+  const dias = totalDias % 30;
+  const meses = Math.floor(totalDias / 30);
+  const semanas = Math.floor(totalDias / 7);
+
+  document.getElementById('countdown-bar').innerHTML = `
+    <div class="countdown-left">
+      <span class="countdown-label">Contagem regressiva</span>
+      <span class="countdown-title">TJ-SC · Técnico Judiciário Auxiliar</span>
+      <span class="countdown-sub">28/06/2026 · 15h às 19h · 80 questões</span>
+    </div>
+    <div class="countdown-units">
+      <div class="countdown-unit">
+        <div class="countdown-num">${Math.abs(totalDias)}</div>
+        <div class="countdown-unit-label">dias</div>
+      </div>
+      <div class="countdown-divider">·</div>
+      <div class="countdown-unit">
+        <div class="countdown-num" style="font-size:16px;color:var(--text2)">${Math.abs(semanas)}</div>
+        <div class="countdown-unit-label">semanas</div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  STATS
+// ═══════════════════════════════════════════════════════════════════════════
+function renderStats() {
+  const today   = dayStr(0);
+  const w7      = dayStr(7);
+  const w30     = dayStr(30);
+
+  const minHoje   = DB.sessoes.filter(s=>s.data===today).reduce((a,s)=>a+s.dur,0);
+  const minSemana = DB.sessoes.filter(s=>s.data>=w7).reduce((a,s)=>a+s.dur,0);
+  const minMes    = DB.sessoes.filter(s=>s.data>=w30).reduce((a,s)=>a+s.dur,0);
+  const diasSet   = new Set(DB.sessoes.filter(s=>s.data>=w7).map(s=>s.data));
+
+  // Fechamento de edital
+  const total    = DISCIPLINAS.length;
+  const estudado = DISCIPLINAS.filter(d => DB.edital_status[d.key] !== 'n-iniciado').length;
+  const dominado = DISCIPLINAS.filter(d => DB.edital_status[d.key] === 'dominado').length;
+  const pctEdital = Math.round(estudado/total*100);
+
+  // Meta diária
+  const metaDia = DB.config.meta_dia || 120;
+  const metaPct = Math.min(100, Math.round(minHoje/metaDia*100));
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card ${metaPct>=100?'highlight':''}">
+      <div class="stat-label">Hoje</div>
+      <div class="stat-value">${fmtMin(minHoje)}</div>
+      <div class="stat-sub">meta: ${metaPct}%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">7 dias</div>
+      <div class="stat-value">${fmtMin(minSemana)}</div>
+      <div class="stat-sub">${fmtMin(DB.config.meta_semana||600)} meta</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">30 dias</div>
+      <div class="stat-value">${fmtMin(minMes)}</div>
+      <div class="stat-sub">último mês</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Consistência</div>
+      <div class="stat-value">${diasSet.size}<span style="font-size:12px;color:var(--text3)">/7</span></div>
+      <div class="stat-sub">dias com estudo</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="stat-label">Edital</div>
+      <div class="stat-value">${pctEdital}<span style="font-size:12px;color:var(--text3)">%</span></div>
+      <div class="stat-sub">${dominado} dominadas</div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  SEMANA VISUAL
+// ═══════════════════════════════════════════════════════════════════════════
+function renderSemana() {
+  const days = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  let html = '';
+  for (let i=6; i>=0; i--) {
+    const d   = new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
+    const ds  = d.toISOString().slice(0,10);
+    const min = DB.sessoes.filter(s=>s.data===ds).reduce((a,s)=>a+s.dur,0);
+    html += `<div class="semana-day ${min>0?'has-study':''} ${i===0?'today':''}">
+      <div class="semana-day-label">${days[d.getDay()]}</div>
+      <div class="semana-day-min">${min ? (min>=60?Math.floor(min/60)+'h':min+'m') : '—'}</div>
+    </div>`;
+  }
+  document.getElementById('semana-grid').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  PRIORIDADE DE ESTUDO
+//
+//  DECISÃO: O score é um valor numérico contínuo; quanto maior, maior a
+//  urgência. Componentes:
+//
+//  1. PESO (40%): direto do edital — disciplinas com mais questões valem mais.
+//  2. TAXA DE ERRO (25%): % de erros nas últimas sessões desta disciplina.
+//     Alta taxa de erros = muita urgência de revisão.
+//  3. DECAIMENTO (20%): dias sem estudar a disciplina. Cada 7 dias sem
+//     contato = multiplicador +1.0. Teto: 4.0 (28 dias).
+//  4. STATUS DO EDITAL (15%): inversamente proporcional ao avanço.
+//     'n-iniciado' = fator 1.0; 'dominado' = fator 0.1.
+//     Isso evita que a disciplina dominada suba de volta ao topo.
+//
+//  A estratégia configurável altera os pesos desses fatores.
+// ═══════════════════════════════════════════════════════════════════════════
+const STATUS_FATOR = { 'n-iniciado':1.0,'estudando':0.8,'revisado':0.55,'testado':0.3,'dominado':0.1 };
+
+function computeScore(disc) {
+  const strat = DB.config.estrategia || 'balanceado';
+  const now   = new Date(); now.setHours(0,0,0,0);
+  const cut14 = dayStr(14);
+
+  // Fator 1: Peso
+  const fPeso = disc.peso;
+
+  // Fator 2: Taxa de erro recente
+  const sessoesDisc = DB.sessoes.filter(s => s.disc===disc.key && s.data>=cut14);
+  const totalQ  = sessoesDisc.reduce((a,s)=>a+(s.qtotal||0),0);
+  const totalE  = sessoesDisc.reduce((a,s)=>a+(s.qerradas||0),0);
+  const txErro  = totalQ > 0 ? totalE/totalQ : 0.3; // sem dados → assume 30% dificuldade
+
+  // Fator 3: Decaimento por abandono
+  const ultima = DB.sessoes.filter(s=>s.disc===disc.key).sort((a,b)=>b.data.localeCompare(a.data))[0];
+  let diasSem = 21; // sem registro → 3 semanas de penalidade inicial
+  if (ultima) {
+    const ult = new Date(ultima.data); ult.setHours(0,0,0,0);
+    diasSem = Math.max(0, (now-ult)/86400000);
+  }
+  const fDecai = Math.min(4.0, 1.0 + diasSem/7);
+
+  // Fator 4: Status do edital
+  const fStatus = STATUS_FATOR[DB.edital_status[disc.key]] ?? 1.0;
+
+  // Pesos por estratégia
+  const W = {
+    pesos:      [0.70, 0.10, 0.15, 0.05],
+    erros:      [0.20, 0.50, 0.20, 0.10],
+    abandono:   [0.20, 0.10, 0.60, 0.10],
+    balanceado: [0.40, 0.25, 0.20, 0.15],
+  }[strat] || [0.40,0.25,0.20,0.15];
+
+  return (W[0]*fPeso + W[1]*txErro + W[2]*(fDecai/4) + W[3]*fStatus) * 100;
+}
+
+function renderPriority() {
+  const ranked = DISCIPLINAS.map(d => ({...d, score:computeScore(d)}))
+    .sort((a,b) => b.score-a.score);
+  const maxS = ranked[0]?.score || 1;
+
+  document.getElementById('priority-list').innerHTML = ranked.map((d,i) => {
+    const ultima = DB.sessoes.filter(s=>s.disc===d.key).sort((a,b)=>b.data.localeCompare(a.data))[0];
+    const now = new Date(); now.setHours(0,0,0,0);
+    let diasLabel = 'nunca';
+    if (ultima) {
+      const ult = new Date(ultima.data); ult.setHours(0,0,0,0);
+      const dd = Math.round((now-ult)/86400000);
+      diasLabel = dd===0 ? 'hoje' : dd===1 ? 'ontem' : `${dd}d atrás`;
+    }
+    const st  = DB.edital_status[d.key];
+    const pct = Math.round((d.score/maxS)*100);
+    const modTag = d.mod===1
+      ? `<span class="priority-mod-tag tag-mod1">M1</span>`
+      : `<span class="priority-mod-tag tag-mod2">M2</span>`;
+    return `<div class="priority-item ${i===0?'rank-1':''}">
+      <span class="priority-rank">${i+1}</span>
+      <span class="priority-disc">${d.label}</span>
+      ${modTag}
+      <span class="status-badge s-${st}" onclick="cycleStatus('${d.key}',event)">${STATUS_LABEL[st]}</span>
+      <div class="priority-bar-wrap"><div class="priority-bar" style="width:${pct}%;background:${d.mod===1?'var(--accent)':'var(--purple)'}"></div></div>
+      <span class="priority-days">${diasLabel}</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  MÓDULOS PROGRESS
+// ═══════════════════════════════════════════════════════════════════════════
+function renderModulos() {
+  const cut14 = dayStr(14);
+  let html = '';
+  [1,2].forEach(m => {
+    const mod = MODULOS[m];
+    const discs = DISCIPLINAS.filter(d=>d.mod===m);
+    const minTotal = DB.sessoes.filter(s => {
+      const disc = DISCIPLINAS.find(d=>d.key===s.disc);
+      return disc?.mod === m && s.data >= cut14;
+    }).reduce((a,s)=>a+s.dur, 0);
+
+    const dominadas = discs.filter(d => DB.edital_status[d.key]==='dominado').length;
+    const estudadas = discs.filter(d => DB.edital_status[d.key]!=='n-iniciado').length;
+    const pctEstudo = Math.round(estudadas/discs.length*100);
+
+    const pillsHtml = discs.map(d => {
+      const st = DB.edital_status[d.key];
+      return `<span class="disc-pill s-${st}">${d.label.replace(/Noções de |Noções sobre /g,'').replace('Institucional PJSC','PJSC').replace('e Proteção de Dados','+ LGPD').replace('e Acesso à Just.','/ Acesso')}</span>`;
+    }).join('');
+
+    html += `<div class="edital-card" style="margin-bottom:10px">
+      <div class="edital-header">
+        <div class="edital-name">Módulo ${m} — ${mod.label}</div>
+        <div class="edital-peso">${Math.round(mod.peso*100)}% da prova · ${mod.qs} q</div>
+      </div>
+      <div class="edital-bar-bg"><div class="edital-bar-fill" style="width:${pctEstudo}%;background:${mod.color}"></div></div>
+      <div class="edital-stats">
+        <span class="edital-stat">Estudadas: <span>${estudadas}/${discs.length}</span></span>
+        <span class="edital-stat">Dominadas: <span>${dominadas}/${discs.length}</span></span>
+        <span class="edital-stat">14d: <span>${fmtMin(minTotal)}</span></span>
+      </div>
+      <div class="disc-pills">${pillsHtml}</div>
+    </div>`;
+  });
+  document.getElementById('modulos-grid').innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  DASHBOARD COMPLETO
+// ═══════════════════════════════════════════════════════════════════════════
+function renderDashboard() {
+  renderCountdown();
+  renderStats();
+  renderSemana();
+  renderPriority();
+  renderModulos();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  EDITAL — Fechamento
+// ═══════════════════════════════════════════════════════════════════════════
+function renderEdital() {
+  // Barra de fechamento global
+  const total    = DISCIPLINAS.length;
+  const estudado = DISCIPLINAS.filter(d=>DB.edital_status[d.key]!=='n-iniciado').length;
+  const dominado = DISCIPLINAS.filter(d=>DB.edital_status[d.key]==='dominado').length;
+  const pctE = Math.round(estudado/total*100);
+  const pctD = Math.round(dominado/total*100);
+
+  // Cobertura ponderada por questões (mais fiel ao impacto real)
+  const totalQs = DISCIPLINAS.reduce((a,d)=>a+d.qs,0);
+  const qsEstud = DISCIPLINAS.filter(d=>DB.edital_status[d.key]!=='n-iniciado').reduce((a,d)=>a+d.qs,0);
+  const qsDom   = DISCIPLINAS.filter(d=>DB.edital_status[d.key]==='dominado').reduce((a,d)=>a+d.qs,0);
+  const pctQsE  = Math.round(qsEstud/totalQs*100);
+  const pctQsD  = Math.round(qsDom/totalQs*100);
+
+  document.getElementById('edital-fechamento-bar').innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px">
+      <div style="display:flex;gap:24px;margin-bottom:10px">
+        <div><div class="stat-label">Edital estudado</div><div style="font-family:var(--font-mono);font-size:20px;font-weight:600;color:var(--accent)">${pctQsE}%</div><div class="stat-sub">${qsEstud}/${totalQs} questões cobertas</div></div>
+        <div><div class="stat-label">Edital dominado</div><div style="font-family:var(--font-mono);font-size:20px;font-weight:600;color:var(--green)">${pctQsD}%</div><div class="stat-sub">${qsDom}/${totalQs} questões dominadas</div></div>
+        <div style="flex:1">
+          <div class="stat-label" style="margin-bottom:7px">Cobertura por questões (meta: 100%)</div>
+          <div style="height:6px;background:var(--surface3);border-radius:3px;position:relative">
+            <div style="height:100%;border-radius:3px;background:var(--accent);width:${pctQsE}%;transition:width .4s"></div>
+          </div>
+          <div style="height:3px;background:var(--surface3);border-radius:3px;margin-top:4px">
+            <div style="height:100%;border-radius:3px;background:var(--green);width:${pctQsD}%;transition:width .4s"></div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:5px">
+            <span style="font-family:var(--font-mono);font-size:8px;color:var(--accent)">▬ Estudado</span>
+            <span style="font-family:var(--font-mono);font-size:8px;color:var(--green)">▬ Dominado</span>
+          </div>
+        </div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:9px;color:var(--text3)">
+        Clique no status de qualquer disciplina para avançar. Ordem: Não iniciado → Em estudo → Revisado → Testado → Dominado
+      </div>
+    </div>`;
+
+  // Tabelas por módulo
+  [1,2].forEach(m => {
+    const discs = DISCIPLINAS.filter(d=>d.mod===m);
+    const rows = discs.map(d => {
+      const st  = DB.edital_status[d.key];
+      const cut14 = dayStr(14);
+      const sess  = DB.sessoes.filter(s=>s.disc===d.key);
+      const min14 = sess.filter(s=>s.data>=cut14).reduce((a,s)=>a+s.dur,0);
+      const erros = DB.erros.filter(e=>e.disc===d.key&&!e.revisado).length;
+      const totalQ = sess.reduce((a,s)=>a+(s.qtotal||0),0);
+      const totalE = sess.reduce((a,s)=>a+(s.qerradas||0),0);
+      const txAcerto = totalQ > 0 ? Math.round((1-totalE/totalQ)*100) : null;
+      const pctBar = [0,20,45,70,95]['n-iniciado estudando revisado testado dominado'.split(' ').indexOf(st)];
+      return `<tr>
+        <td style="font-weight:500">${d.label}</td>
+        <td class="q-badge">${d.qs} q · ${Math.round(d.peso*100)}%</td>
+        <td>
+          <span class="status-badge s-${st}" style="cursor:pointer" onclick="cycleStatus('${d.key}',event)">${STATUS_LABEL[st]}</span>
+        </td>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="progress-mini-bg"><div class="progress-mini-fill" style="width:${pctBar}%;background:${m===1?'var(--accent)':'var(--purple)'}"></div></div>
+            <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3)">${pctBar}%</span>
+          </div>
+        </td>
+        <td class="q-badge">${fmtMin(min14)}</td>
+        <td>${txAcerto!==null ? `<span style="font-family:var(--font-mono);font-size:10px;color:${txAcerto>=70?'var(--green)':txAcerto>=50?'var(--amber)':'var(--red)'}">${txAcerto}%</span>` : '<span style="color:var(--text3);font-size:10px">—</span>'}</td>
+        <td>${erros>0?`<span style="font-family:var(--font-mono);font-size:10px;color:var(--red)">${erros} pendente${erros>1?'s':''}</span>`:'<span style="color:var(--text3);font-size:10px">—</span>'}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById(`edital-table-mod${m}`).innerHTML = `
+      <thead><tr>
+        <th>Disciplina</th><th>Peso</th><th>Status</th><th>Progresso</th><th>14d</th><th>% acerto</th><th>Erros pendentes</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>`;
+  });
+}
+
+function cycleStatus(key, ev) {
+  ev?.stopPropagation();
+  const cur = DB.edital_status[key];
+  const idx = STATUS_EDITAL.indexOf(cur);
+  DB.edital_status[key] = STATUS_EDITAL[(idx+1) % STATUS_EDITAL.length];
+  saveDB();
+  // Re-render current view
+  const active = document.querySelector('.view.active')?.id.replace('view-','');
+  if (active === 'edital') renderEdital();
+  else if (active === 'dashboard') renderDashboard();
+  showToast(`${STATUS_LABEL[DB.edital_status[key]]} — ${DISCIPLINAS.find(d=>d.key===key)?.label||key}`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  SESSÕES
+// ═══════════════════════════════════════════════════════════════════════════
+function renderSessoes() {
+  const mods = ['todas','1','2'];
+  let activeFilter = 'todas';
+
+  function render(f) {
+    activeFilter = f;
+    document.getElementById('sessoes-filters').innerHTML =
+      `<span class="filter-pill ${f==='todas'?'active':''}" onclick="filterSessoes('todas')">Todas</span>
+       <span class="filter-pill ${f==='1'?'active':''}" onclick="filterSessoes('1')">Módulo 1</span>
+       <span class="filter-pill ${f==='2'?'active':''}" onclick="filterSessoes('2')">Módulo 2</span>`;
+
+    const sorted = [...DB.sessoes].sort((a,b)=>b.data.localeCompare(a.data));
+    const filtered = f==='todas' ? sorted : sorted.filter(s=>{
+      const disc = DISCIPLINAS.find(d=>d.key===s.disc);
+      return String(disc?.mod) === f;
+    });
+
+    if (!filtered.length) {
+      document.getElementById('sessoes-list').innerHTML = '<div class="empty"><p>Nenhuma sessão registrada ainda.<br>Clique em "+ Sessão" para começar.</p></div>';
+      return;
+    }
+    document.getElementById('sessoes-list').innerHTML = filtered.map(s => {
+      const disc = DISCIPLINAS.find(d=>d.key===s.disc);
+      const tipoLabel = {teoria:'teoria',exercicio:'exer',revisao:'rev',lei_seca:'lei',jurisprudencia:'juris'}[s.tipo]||s.tipo;
+      const qInfo = s.qtotal > 0 ? `${s.qtotal-(s.qerradas||0)}/${s.qtotal}` : '';
+      const modCls = disc?.mod===1 ? 'tag-mod1' : 'tag-mod2';
+      return `<div class="session-item">
+        <span class="session-date">${s.data.slice(5)}</span>
+        <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0">
+          <span class="session-disc" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${disc?.label||s.disc}</span>
+          <span style="font-family:var(--font-mono);font-size:8px;padding:1px 4px;border-radius:2px;flex-shrink:0" class="${modCls}">M${disc?.mod}</span>
+        </div>
+        <span class="session-tipo" style="flex-shrink:0">${tipoLabel}</span>
+        ${qInfo?`<span class="session-q">${qInfo} ✓</span>`:''}
+        <span class="session-dur">${fmtMin(s.dur)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  window.filterSessoes = (f) => render(f);
+  render('todas');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  ERROS / CADERNO
+// ═══════════════════════════════════════════════════════════════════════════
+function renderErros() {
+  const tipos = ['todas', ...Object.keys(TIPO_ERRO)];
+  let activeFilter = 'todas';
+  let showRevisados = false;
+
+  function render() {
+    document.getElementById('erros-filters').innerHTML =
+      tipos.map(t => `<span class="filter-pill ${activeFilter===t?'active':''}" onclick="filterErros('${t}')">${t==='todas'?'Todos':TIPO_ERRO[t]}</span>`).join('') +
+      `<span class="filter-sep"></span>
+       <span class="filter-pill ${showRevisados?'active':''}" onclick="toggleErrosRevisados()">Exibir revisados</span>`;
+
+    let erros = [...DB.erros].sort((a,b)=>b.data.localeCompare(a.data));
+    if (!showRevisados) erros = erros.filter(e=>!e.revisado);
+    if (activeFilter!=='todas') erros = erros.filter(e=>e.tipo===activeFilter);
+
+    if (!erros.length) {
+      document.getElementById('erros-list').innerHTML = '<div class="empty"><p>Nenhum erro pendente de revisão.<br>Bom trabalho!</p></div>';
+      return;
+    }
+
+    const corTipo = { lei_seca:'var(--red)', confusao:'var(--amber)', pegadinha:'var(--purple)', desatencao:'var(--text3)' };
+    document.getElementById('erros-list').innerHTML = erros.map(e => {
+      const disc  = DISCIPLINAS.find(d=>d.key===e.disc);
+      const cor   = corTipo[e.tipo] || 'var(--text3)';
+      const label = TIPO_ERRO[e.tipo] || e.tipo;
+      return `<div class="erro-item ${e.revisado?'revisado':''}">
+        <div class="erro-check ${e.revisado?'checked':''}" onclick="toggleErroRev('${e.id}')">
+          ${e.revisado?`<svg viewBox="0 0 10 10" fill="none" stroke="white" stroke-width="2"><path d="M2 5l2.5 2.5L8 3"/></svg>`:''}
+        </div>
+        <div class="erro-body">
+          <div class="erro-meta">
+            <span class="erro-disc">${disc?.label||e.disc}</span>
+            <span class="erro-cat" style="background:${cor}18;color:${cor};border:1px solid ${cor}33">${label}</span>
+            ${e.artigo?`<span class="erro-lei">${e.artigo}</span>`:''}
+          </div>
+          ${e.tema?`<div class="erro-tema">${e.tema}</div>`:''}
+          ${e.obs?`<div class="erro-obs">${e.obs}</div>`:''}
+        </div>
+        <span class="erro-date">${e.data.slice(5)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  window.filterErros      = (f) => { activeFilter=f; render(); };
+  window.toggleErrosRevisados = () => { showRevisados=!showRevisados; render(); };
+  render();
+}
+
+function toggleErroRev(id) {
+  const e = DB.erros.find(x=>x.id===id);
+  if (!e) return;
+  e.revisado = !e.revisado;
+  e.data_revisao = e.revisado ? dayStr(0) : null;
+  saveDB();
+  renderErros();
+  showToast(e.revisado ? 'Erro marcado como revisado' : 'Revisão desmarcada');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  SIMULADOS
+// ═══════════════════════════════════════════════════════════════════════════
+function renderSimulados() {
+  if (!DB.simulados.length) {
+    document.getElementById('simulados-content').innerHTML = '<div class="empty"><p>Nenhum simulado registrado ainda.<br>Clique em "+ Simulado" para começar.</p></div>';
+    return;
+  }
+  const sorted = [...DB.simulados].sort((a,b)=>b.data.localeCompare(a.data));
+  document.getElementById('simulados-content').innerHTML = sorted.map(sim => {
+    const totalAcertos = sim.resultados.reduce((a,r)=>a+(r.acertos||0),0);
+    const totalQ       = sim.resultados.reduce((a,r)=>a+(r.total||0),0);
+    const pctTotal     = totalQ > 0 ? Math.round(totalAcertos/totalQ*100) : 0;
+    const corTotal     = pctTotal>=65?'var(--green)':pctTotal>=50?'var(--amber)':'var(--red)';
+
+    const discsHtml = sim.resultados.map(r => {
+      const disc = DISCIPLINAS.find(d=>d.key===r.disc);
+      if (!disc) return '';
+      const pct = r.total>0 ? Math.round(r.acertos/r.total*100) : 0;
+      const cor = pct>=70?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
+      return `<div class="sim-disc">
+        <div class="sim-disc-name">${disc.label.replace(/Noções de |Noções sobre /g,'').split(' ').slice(0,2).join(' ')}</div>
+        <div class="sim-disc-nota" style="color:${cor}">${pct}%</div>
+        <div class="sim-disc-detail">${r.acertos}/${r.total}</div>
+      </div>`;
+    }).join('');
+
+    const tipoLabel = {completo:'Prova completa',modulo1:'Módulo 1',modulo2:'Módulo 2',disciplina:'Por disciplina'}[sim.tipo]||sim.tipo;
+    return `<div class="simulado-card">
+      <div class="simulado-header">
+        <div>
+          <div class="simulado-name">${sim.nome}</div>
+          <div class="simulado-meta">${sim.data} · ${tipoLabel}</div>
+        </div>
+        <span style="font-family:var(--font-mono);font-size:20px;font-weight:600;color:${corTotal}">${pctTotal}%</span>
+      </div>
+      <div class="simulado-discs">${discsHtml}</div>
+      <div class="sim-total-bar">
+        <span class="sim-total-label">${totalAcertos}/${totalQ} acertos</span>
+        <div class="sim-total-bar-bg"><div class="sim-total-bar-fill" style="width:${pctTotal}%;background:${corTotal}"></div></div>
+        <span class="sim-total-pct" style="color:${corTotal}">${pctTotal}%</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════════════════════════════
+function renderConfig() {
+  document.getElementById('cfg-meta-dia').value    = DB.config.meta_dia    || 120;
+  document.getElementById('cfg-meta-semana').value = DB.config.meta_semana || 600;
+  document.getElementById('cfg-estrategia').value  = DB.config.estrategia  || 'balanceado';
+}
+
+function saveConfig() {
+  DB.config.meta_dia    = parseInt(document.getElementById('cfg-meta-dia').value)    || 120;
+  DB.config.meta_semana = parseInt(document.getElementById('cfg-meta-semana').value) || 600;
+  DB.config.estrategia  = document.getElementById('cfg-estrategia').value;
+  saveDB();
+  showToast('Configurações salvas');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  MODAL SESSÃO
+// ═══════════════════════════════════════════════════════════════════════════
+let qCount = 0;
+
+function openSessaoModal() {
+  const sel = document.getElementById('s-disc');
+  sel.innerHTML = '<option value="">— selecionar —</option>' +
+    DISCIPLINAS.map(d => `<option value="${d.key}">${d.label}</option>`).join('');
+  document.getElementById('s-data').value    = dayStr(0);
+  document.getElementById('s-dur').value     = '';
+  document.getElementById('s-qtotal').value  = '';
+  document.getElementById('s-qerradas').value= '';
+  document.getElementById('s-fonte').value   = '';
+  document.getElementById('s-tipo').value    = 'exercicio';
+  document.getElementById('s-status').value  = '';
+  document.getElementById('questoes-container').innerHTML = '';
+  document.getElementById('questoes-detail').classList.remove('open');
+  document.getElementById('qtoggle-label').textContent = 'Detalhar erros por artigo / tema';
+  document.getElementById('modal-sessao').classList.add('open');
+  setTimeout(()=>sel.focus(),50);
+}
+
+function toggleQuestoes() {
+  const el = document.getElementById('questoes-detail');
+  const lb = document.getElementById('qtoggle-label');
+  el.classList.toggle('open');
+  lb.textContent = el.classList.contains('open') ? 'Ocultar detalhes' : 'Detalhar erros por artigo / tema';
+  if (el.classList.contains('open') && !document.getElementById('questoes-container').children.length) addQuestao();
+}
+
+function addQuestao() {
+  const id = ++qCount;
+  const wrap = document.createElement('div');
+  wrap.className = 'questao-block';
+  wrap.id = 'qb-'+id;
+  wrap.innerHTML = `
+    <div class="questao-block-header">
+      <span class="questao-block-label">Erro ${id}</span>
+      <button type="button" class="questao-remove" onclick="document.getElementById('qb-${id}').remove()">×</button>
+    </div>
+    <div class="form-row3">
+      <div>
+        <label class="form-label">Tipo de erro</label>
+        <select class="form-control" id="qe${id}-tipo">
+          ${Object.entries(TIPO_ERRO).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Artigo / lei</label>
+        <input class="form-control" id="qe${id}-art" type="text" placeholder="ex: Art. 37 CF" style="font-size:11px">
+      </div>
+      <div>
+        <label class="form-label">Tema / assunto</label>
+        <input class="form-control" id="qe${id}-tema" type="text" placeholder="ex: Licitação" style="font-size:11px">
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:8px;margin-bottom:0">
+      <label class="form-label">Observação</label>
+      <input class="form-control" id="qe${id}-obs" type="text" placeholder="O que errou? Como evitar?" style="font-size:11px">
+    </div>`;
+  document.getElementById('questoes-container').appendChild(wrap);
+}
+
+function saveSessao(ev) {
+  ev.preventDefault();
+  const disc     = document.getElementById('s-disc').value;
+  const dur      = parseInt(document.getElementById('s-dur').value);
+  const data     = document.getElementById('s-data').value;
+  const tipo     = document.getElementById('s-tipo').value;
+  const qtotal   = parseInt(document.getElementById('s-qtotal').value)||0;
+  const qerradas = parseInt(document.getElementById('s-qerradas').value)||0;
+  const fonte    = document.getElementById('s-fonte').value.trim();
+  const novoSt   = document.getElementById('s-status').value;
+
+  if (qerradas > qtotal && qtotal > 0) { showToast('Erradas não pode superar o total', true); return; }
+
+  const sid = uid();
+  DB.sessoes.push({ id:sid, disc, dur, data, tipo, qtotal, qerradas, fonte });
+
+  // Atualizar status do edital se selecionado
+  if (novoSt) {
+    DB.edital_status[disc] = novoSt;
+  } else if (DB.edital_status[disc] === 'n-iniciado') {
+    // Primeira sessão automaticamente avança para 'estudando'
+    DB.edital_status[disc] = 'estudando';
+  }
+
+  // Coletar erros detalhados
+  document.querySelectorAll('[id^="qb-"]').forEach(wrap => {
+    const n    = wrap.id.replace('qb-','');
+    const tipo = wrap.querySelector(`#qe${n}-tipo`)?.value || 'confusao';
+    const art  = wrap.querySelector(`#qe${n}-art`)?.value.trim() || '';
+    const tema = wrap.querySelector(`#qe${n}-tema`)?.value.trim() || '';
+    const obs  = wrap.querySelector(`#qe${n}-obs`)?.value.trim() || '';
+    DB.erros.push({ id:uid(), sessao_id:sid, disc, tipo, artigo:art, tema, obs, revisado:false, data_revisao:null, data });
+  });
+
+  saveDB();
+  closeModal('sessao');
+  showToast('Sessão salva com sucesso');
+  renderDashboard();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  MODAL SIMULADO
+// ═══════════════════════════════════════════════════════════════════════════
+function openSimuladoModal() {
+  document.getElementById('sim-data').value = dayStr(0);
+  document.getElementById('sim-nome').value = '';
+  document.getElementById('sim-tipo').value = 'completo';
+  // Preenche filtro de disciplina
+  document.getElementById('sim-disc-filter').innerHTML =
+    '<option value="">Todas</option>' +
+    DISCIPLINAS.map(d=>`<option value="${d.key}">${d.label}</option>`).join('');
+  buildSimDiscsForm('completo', '');
+  document.getElementById('sim-tipo').onchange = function() { buildSimDiscsForm(this.value, document.getElementById('sim-disc-filter').value); };
+  document.getElementById('sim-disc-filter').onchange = function() { buildSimDiscsForm(document.getElementById('sim-tipo').value, this.value); };
+  document.getElementById('modal-simulado').classList.add('open');
+}
+
+function buildSimDiscsForm(tipo, discFilter) {
+  let discs;
+  if (tipo==='modulo1')    discs = DISCIPLINAS.filter(d=>d.mod===1);
+  else if (tipo==='modulo2') discs = DISCIPLINAS.filter(d=>d.mod===2);
+  else if (tipo==='disciplina' && discFilter) discs = DISCIPLINAS.filter(d=>d.key===discFilter);
+  else discs = DISCIPLINAS;
+
+  document.getElementById('sim-discs-form').innerHTML = discs.map(d => {
+    const padrao = tipo==='completo'||tipo==='modulo1'||tipo==='modulo2' ? d.qs : 10;
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="flex:1;font-size:12px;color:var(--text2)">${d.label}</span>
+      <label class="form-label" style="margin:0">Acertos</label>
+      <input class="form-control" id="sim-ac-${d.key}" type="number" min="0" max="${d.qs}" placeholder="0" style="width:55px;font-family:var(--font-mono);text-align:center">
+      <span style="color:var(--text3);font-family:var(--font-mono);font-size:11px">/</span>
+      <input class="form-control" id="sim-tot-${d.key}" type="number" value="${padrao}" min="1" style="width:50px;font-family:var(--font-mono);text-align:center">
+    </div>`;
+  }).join('');
+}
+
+function saveSimulado(ev) {
+  ev.preventDefault();
+  const tipo       = document.getElementById('sim-tipo').value;
+  const discFilter = document.getElementById('sim-disc-filter').value;
+  let discs;
+  if (tipo==='modulo1')    discs = DISCIPLINAS.filter(d=>d.mod===1);
+  else if (tipo==='modulo2') discs = DISCIPLINAS.filter(d=>d.mod===2);
+  else if (tipo==='disciplina' && discFilter) discs = DISCIPLINAS.filter(d=>d.key===discFilter);
+  else discs = DISCIPLINAS;
+
+  const resultados = discs.map(d => {
+    const ac  = parseInt(document.getElementById('sim-ac-'+d.key)?.value)||0;
+    const tot = parseInt(document.getElementById('sim-tot-'+d.key)?.value)||d.qs;
+    return { disc:d.key, acertos:ac, total:tot, pct:Math.round(ac/tot*100) };
+  });
+
+  DB.simulados.push({ id:uid(), nome:document.getElementById('sim-nome').value, data:document.getElementById('sim-data').value, tipo, resultados });
+  saveDB();
+  closeModal('simulado');
+  showToast('Simulado salvo');
+  renderSimulados();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════════════════════════════════
+function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+
+function dayStr(offsetDays) {
+  const d = new Date(); d.setDate(d.getDate()-offsetDays); d.setHours(0,0,0,0);
+  return d.toISOString().slice(0,10);
+}
+
+function fmtMin(m) {
+  if (!m) return '0min';
+  return m>=60 ? `${Math.floor(m/60)}h${m%60?String(m%60).padStart(2,'0'):''}` : `${m}min`;
+}
+
+function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
+
+function showToast(msg, err=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.borderColor = err?'var(--red)':'var(--accent)';
+  t.style.color = err?'var(--red)':'var(--accent)';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+function exportData() {
+  const b = new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(b);
+  a.download='stracker-tjsc-backup.json'; a.click();
+}
+
+function clearData() {
+  if (!confirm('Apagar todos os dados? Esta ação é irreversível.')) return;
+  DB = { sessoes:[], erros:[], simulados:[], config:defaultConfig(), edital_status:defaultEditalStatus() };
+  saveDB(); showToast('Dados apagados'); renderDashboard();
+}
+
+// Fechar modal ao clicar no overlay
+document.querySelectorAll('.modal-overlay').forEach(o =>
+  o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); })
+);
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  SEED — Dados demo realistas para TJ-SC
+// ═══════════════════════════════════════════════════════════════════════════
+function seedDemo() {
+  if (DB.sessoes.length > 0) return;
+
+  DB.sessoes = [
+    { id:uid(), disc:'dpc',  dur:90,  data:dayStr(0),  tipo:'exercicio',   qtotal:20, qerradas:6,  fonte:'Estratégia Conc. – DPC Aula 7' },
+    { id:uid(), disc:'dpp',  dur:75,  data:dayStr(0),  tipo:'exercicio',   qtotal:15, qerradas:5,  fonte:'Gran Cursos – DPP' },
+    { id:uid(), disc:'lp',   dur:60,  data:dayStr(1),  tipo:'revisao',     qtotal:20, qerradas:3,  fonte:'Cebraspe questões' },
+    { id:uid(), disc:'dadm', dur:90,  data:dayStr(1),  tipo:'exercicio',   qtotal:25, qerradas:8,  fonte:'QConcursos' },
+    { id:uid(), disc:'dcon', dur:80,  data:dayStr(2),  tipo:'lei_seca',    qtotal:0,  qerradas:0,  fonte:'CF/88 Arts. 1-17' },
+    { id:uid(), disc:'dpc',  dur:60,  data:dayStr(2),  tipo:'teoria',      qtotal:0,  qerradas:0,  fonte:'CPC comentado' },
+    { id:uid(), disc:'dpen', dur:45,  data:dayStr(3),  tipo:'exercicio',   qtotal:15, qerradas:7,  fonte:'Gran Cursos' },
+    { id:uid(), disc:'lp',   dur:90,  data:dayStr(4),  tipo:'exercicio',   qtotal:30, qerradas:4,  fonte:'Cebraspe – LP' },
+    { id:uid(), disc:'dadm', dur:70,  data:dayStr(5),  tipo:'revisao',     qtotal:20, qerradas:5,  fonte:'' },
+    { id:uid(), disc:'dpp',  dur:80,  data:dayStr(6),  tipo:'teoria',      qtotal:0,  qerradas:0,  fonte:'CPP comentado' },
+    { id:uid(), disc:'dciv', dur:50,  data:dayStr(9),  tipo:'exercicio',   qtotal:12, qerradas:5,  fonte:'' },
+    { id:uid(), disc:'info', dur:40,  data:dayStr(12), tipo:'teoria',      qtotal:0,  qerradas:0,  fonte:'' },
+  ];
+
+  DB.erros = [
+    { id:uid(), sessao_id:'', disc:'dpc',  tipo:'lei_seca',   artigo:'Art. 319 CPC',  tema:'Tutela de urgência',        obs:'Confundiu tutela cautelar com antecipada',          revisado:false, data_revisao:null, data:dayStr(0) },
+    { id:uid(), sessao_id:'', disc:'dpc',  tipo:'confusao',   artigo:'Art. 485 CPC',  tema:'Extinção sem julgamento',   obs:'Não lembrou as hipóteses do art. 485',              revisado:false, data_revisao:null, data:dayStr(0) },
+    { id:uid(), sessao_id:'', disc:'dpp',  tipo:'pegadinha',  artigo:'Art. 41 CPP',   tema:'Denúncia e queixa',         obs:'Banca cobrou prazo diferenciado MP x querelante',   revisado:false, data_revisao:null, data:dayStr(0) },
+    { id:uid(), sessao_id:'', disc:'dadm', tipo:'confusao',   artigo:'Art. 37 CF',    tema:'Princípios administrativos',obs:'Confundiu impessoalidade com moralidade',           revisado:false, data_revisao:null, data:dayStr(1) },
+    { id:uid(), sessao_id:'', disc:'dadm', tipo:'lei_seca',   artigo:'Lei 8112/90',   tema:'Processo disciplinar',      obs:'Não sabia prazo para sindicância',                  revisado:false, data_revisao:null, data:dayStr(1) },
+    { id:uid(), sessao_id:'', disc:'dpen', tipo:'confusao',   artigo:'Art. 155 CP',   tema:'Furto vs roubo',            obs:'Errou elementar de violência / grave ameaça',       revisado:true,  data_revisao:dayStr(0), data:dayStr(3) },
+    { id:uid(), sessao_id:'', disc:'dpen', tipo:'pegadinha',  artigo:'Art. 14 CP',    tema:'Tentativa',                 obs:'Banca cobrou desistência voluntária como tentativa', revisado:false, data_revisao:null, data:dayStr(3) },
+    { id:uid(), sessao_id:'', disc:'lp',   tipo:'desatencao', artigo:'',              tema:'Concordância verbal',       obs:'Leu rápido e não percebeu sujeito composto',         revisado:false, data_revisao:null, data:dayStr(4) },
+    { id:uid(), sessao_id:'', disc:'dcon', tipo:'lei_seca',   artigo:'Art. 5º CF',    tema:'Direitos fundamentais',     obs:'Confundiu inciso sobre sigilo de carta/comunicação', revisado:false, data_revisao:null, data:dayStr(2) },
+    { id:uid(), sessao_id:'', disc:'dciv', tipo:'confusao',   artigo:'Art. 189 CC',   tema:'Prescrição e decadência',   obs:'Trocou prazo prescricional por decadencial',         revisado:false, data_revisao:null, data:dayStr(9) },
+  ];
+
+  DB.edital_status = {
+    lp:'revisado', leg:'estudando', etica:'n-iniciado', info:'estudando', dh:'n-iniciado',
+    dadm:'estudando', dpc:'estudando', dpp:'estudando', dcon:'estudando', dciv:'estudando', dpen:'estudando',
+  };
+
+  DB.simulados = [
+    { id:uid(), nome:'Simulado TJ-SC #1 — Completo', data:dayStr(14), tipo:'completo', resultados:[
+      { disc:'lp',   acertos:8,  total:10, pct:80 },
+      { disc:'leg',  acertos:3,  total:6,  pct:50 },
+      { disc:'etica',acertos:2,  total:4,  pct:50 },
+      { disc:'info', acertos:3,  total:5,  pct:60 },
+      { disc:'dh',   acertos:3,  total:5,  pct:60 },
+      { disc:'dadm', acertos:6,  total:10, pct:60 },
+      { disc:'dpc',  acertos:5,  total:10, pct:50 },
+      { disc:'dpp',  acertos:5,  total:10, pct:50 },
+      { disc:'dcon', acertos:5,  total:8,  pct:63 },
+      { disc:'dciv', acertos:3,  total:6,  pct:50 },
+      { disc:'dpen', acertos:3,  total:6,  pct:50 },
+    ]},
+    { id:uid(), nome:'Simulado Módulo 2 — Específicos', data:dayStr(7), tipo:'modulo2', resultados:[
+      { disc:'dadm', acertos:7,  total:10, pct:70 },
+      { disc:'dpc',  acertos:6,  total:10, pct:60 },
+      { disc:'dpp',  acertos:6,  total:10, pct:60 },
+      { disc:'dcon', acertos:5,  total:8,  pct:63 },
+      { disc:'dciv', acertos:4,  total:6,  pct:67 },
+      { disc:'dpen', acertos:4,  total:6,  pct:67 },
+    ]},
+  ];
+
+  saveDB();
+}
+
+// ─── INIT ───────────────────────────────────────────────────────────────────
+seedDemo();
+renderDashboard();
+</script>
+</body>
+</html>
