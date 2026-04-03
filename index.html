@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>STracker – TJ-SC</title>
+<title>STracker - TJ-SC</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 /* ─── DESIGN TOKENS ─────────────────────────────────────────────────────────
@@ -50,12 +50,24 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);height:
 .nav-item.active{background:var(--accent-dim);color:var(--accent)}
 .nav-item svg{width:14px;height:14px;flex-shrink:0;opacity:.65}
 .nav-item.active svg{opacity:1}
-.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-height:0}
+/* Quando checklist está ativo, o scroll é interno aos painéis — .main não rola */
+.main.checklist-active{overflow:hidden}
 .main::-webkit-scrollbar{width:3px}
 .main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 .view{display:none;padding:26px 30px;flex:1}
 .view.active{display:block}
-#view-checklist.active{display:flex}
+/* Checklist precisa de display:flex para o layout de dois painéis,
+   mas SOMENTE quando ativo — nunca no estado padrão display:none.
+   flex-direction:row porque .cl-layout já é o único filho e é horizontal.
+   overflow:hidden + min-height:0 habilitam scroll aninhado nos filhos. */
+#view-checklist.active{
+  display: flex;
+  flex-direction: row;
+  padding: 0;
+  overflow: hidden;
+  min-height: 0;
+}
 
 /* ─── TOPBAR ─────────────────────────────────────────────────────────────── */
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 30px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:10}
@@ -243,7 +255,8 @@ select.form-control{cursor:pointer}
 .s-dominado   {background:var(--green-dim);color:var(--green);border:1px solid rgba(74,222,128,.3)}
 
 /* ─── TOAST ──────────────────────────────────────────────────────────────── */
-.toast{position:fixed;bottom:18px;right:18px;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--radius);padding:9px 15px;font-family:var(--font-mono);font-size:10px;color:var(--accent);z-index:200;transform:translateY(50px);opacity:0;transition:all .22s;pointer-events:none}
+.toast{position:fixed;bottom:18px;right:18px;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--radius);padding:9px 15px;font-family:var(--font-mono);font-size:10px;color:var(--accent);z-index:200;transform:translateY(50px);opacity:0;transition:all .22s;pointer-events:none;max-width:340px;white-space:nowrap}
+.toast.show{pointer-events:auto}
 .toast.show{transform:translateY(0);opacity:1}
 
 /* ─── EMPTY STATE ────────────────────────────────────────────────────────── */
@@ -255,30 +268,57 @@ select.form-control{cursor:pointer}
 .tag-mod2{background:rgba(167,139,250,.12);color:var(--purple);border:1px solid rgba(167,139,250,.25)}
 .inline-num{font-family:var(--font-mono)}
 
-/* ─── CHECKLIST ──────────────────────────────────────────────────────────── */
+/* ─── FEYNMAN ────────────────────────────────────────────────────────────── */
+.fy-filter-bar{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+
+/* Card de registro Feynman na lista */
+.fy-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:10px;transition:border-color .14s}
+.fy-card:hover{border-color:var(--border2)}
+.fy-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.fy-card-meta{display:flex;flex-direction:column;gap:3px;min-width:0}
+.fy-card-topico{font-size:13px;font-weight:500;color:var(--text);line-height:1.4;overflow-wrap:break-word}
+.fy-card-sub{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fy-card-disc{font-family:var(--font-mono);font-size:9px;padding:1px 6px;border-radius:3px;white-space:nowrap}
+.fy-card-date{font-family:var(--font-mono);font-size:9px;color:var(--text3);white-space:nowrap}
+.fy-card-delete{background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;line-height:1;padding:0;flex-shrink:0;transition:color .12s}
+.fy-card-delete:hover{color:var(--red)}
+
+/* Blocos de perguntas dentro do card */
+.fy-block{margin-bottom:10px}
+.fy-block:last-child{margin-bottom:0}
+.fy-block-q{font-family:var(--font-mono);font-size:8px;letter-spacing:.06em;color:var(--text3);text-transform:uppercase;margin-bottom:4px}
+.fy-block-a{font-size:12px;color:var(--text2);line-height:1.6;padding:7px 10px;background:var(--surface2);border-radius:3px;border-left:2px solid var(--border2);overflow-wrap:break-word}
+/* Destaque especial para a regra mental (último campo) */
+.fy-block-a.regra{border-left-color:var(--amber);color:var(--amber);font-weight:500}
+
+/* Modal Feynman — mais largo que o de sessão por ter 5 textareas */
+.modal-feynman{width:560px}
+.fy-pergunta-label{font-size:11px;color:var(--text2);margin-bottom:5px;display:block;line-height:1.4}
+.fy-pergunta-num{font-family:var(--font-mono);font-size:9px;color:var(--accent);margin-right:5px}
+textarea.form-control{resize:vertical;min-height:56px;font-size:12px;line-height:1.6}
+
+/* Empty state Feynman */
+.fy-empty{text-align:center;padding:48px 20px;color:var(--text3)}
+.fy-empty-icon{font-size:28px;margin-bottom:10px;opacity:.35}
+.fy-empty p{font-size:12px;line-height:1.7;margin-top:6px}
+
 /*
   LAYOUT STRATEGY:
-  - .view#view-checklist ocupa o espaço restante com flex (herdado de .main)
+  - #view-checklist.active é display:flex (definido junto com .view.active acima)
   - .cl-layout divide em sidebar fixa + painel direito, ambos com scroll próprio
   - Nenhum overflow:hidden que corte conteúdo legítimo
   - Todo texto longo: min-width:0 + overflow-wrap para não empurrar contadores
 */
 
-/* A view do checklist precisa preencher a área disponível sem padding lateral */
-#view-checklist {
-  padding: 0 !important;
-  flex-direction: column;
-  /* herda flex:1 e overflow-y do .view — sobreescrevemos abaixo */
-  overflow: hidden;
-  min-height: 0;
-}
-
-/* Grid principal: sidebar 230px | conteúdo flex */
+/* Grid principal: sidebar 230px | conteúdo flex
+   #view-checklist.active é o flex container pai;
+   .cl-layout preenche 100% dele com flex-direction:row */
 .cl-layout {
   display: flex;
   flex-direction: row;
   flex: 1;
-  min-height: 0;       /* essencial para flex children com overflow-y:auto */
+  width: 100%;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -659,6 +699,10 @@ select.form-control{cursor:pointer}
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L5 7l3 3 2-4 4 6"/><rect x="1" y="1" width="14" height="14" rx="1"/></svg>
       Simulados
     </button>
+    <button class="nav-item" onclick="showView('feynman')" data-view="feynman">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a5 5 0 100 10A5 5 0 008 1z"/><path d="M8 11v4M6 15h4"/><path d="M6 6.5C6 5.7 6.9 5 8 5s2 .7 2 1.5c0 1-1 1.5-2 2v1"/></svg>
+      Feynman
+    </button>
     <button class="nav-item" onclick="showView('checklist')" data-view="checklist">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h1l1 1 2-2M2 9h1l1 1 2-2M2 14h1l1 1 2-2"/><path d="M8 5h6M8 10h6M8 15h4"/></svg>
       Checklist
@@ -723,6 +767,12 @@ select.form-control{cursor:pointer}
   <!-- SIMULADOS -->
   <div class="view" id="view-simulados">
     <div id="simulados-content"></div>
+  </div>
+
+  <!-- FEYNMAN -->
+  <div class="view" id="view-feynman">
+    <div class="filter-bar fy-filter-bar" id="fy-filters"></div>
+    <div id="fy-list"></div>
   </div>
 
   <!-- CHECKLIST -->
@@ -861,6 +911,55 @@ select.form-control{cursor:pointer}
   </div>
 </div>
 
+<!-- ═══ MODAL FEYNMAN ══════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-feynman">
+  <div class="modal modal-feynman">
+    <div class="modal-title" id="fy-modal-title">Caderno Feynman</div>
+    <form id="form-feynman" onsubmit="saveFeynman(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Disciplina</label>
+          <select class="form-control" id="fy-disc" required></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data</label>
+          <input class="form-control" id="fy-data" type="date" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tópico estudado *</label>
+        <input class="form-control" id="fy-topico" type="text" placeholder="ex: Tutela de urgência — art. 300 CPC" maxlength="100" required>
+      </div>
+      <hr class="form-divider">
+      <div class="form-group">
+        <label class="fy-pergunta-label"><span class="fy-pergunta-num">1.</span>Explique esse conteúdo em até 5 linhas, como se estivesse ensinando alguém que nunca estudou isso.</label>
+        <textarea class="form-control" id="fy-p1" rows="3" maxlength="600" placeholder="Use linguagem simples. Sem jargão."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="fy-pergunta-label"><span class="fy-pergunta-num">2.</span>Se esse conteúdo virasse UMA questão de prova, qual seria o ponto central cobrado?</label>
+        <textarea class="form-control" id="fy-p2" rows="2" maxlength="400" placeholder="Seja específico. Pense como a banca."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="fy-pergunta-label"><span class="fy-pergunta-num">3.</span>O que você ainda confunde, esquece ou mistura com outro conteúdo?</label>
+        <textarea class="form-control" id="fy-p3" rows="2" maxlength="400" placeholder="Seja honesto. Isso vira alerta de revisão."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="fy-pergunta-label"><span class="fy-pergunta-num">4.</span>Como a banca costuma cobrar esse conteúdo?</label>
+        <textarea class="form-control" id="fy-p4" rows="2" maxlength="400" placeholder="ex: pegadinhas de prazo, confusão entre institutos..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="fy-pergunta-label"><span class="fy-pergunta-num">5.</span>Qual frase curta ou regra mental te ajuda a lembrar esse conteúdo na prova?</label>
+        <textarea class="form-control" id="fy-p5" rows="2" maxlength="300" placeholder="ex: 'tutela urgência = fumus + periculum'"></textarea>
+      </div>
+      <input type="hidden" id="fy-sessao-id" value="">
+      <div class="form-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('feynman')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar Feynman</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- ═══ MODAL SIMULADO ══════════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-simulado">
   <div class="modal">
@@ -974,13 +1073,14 @@ function loadDB() {
     if (!d) return null;
     if (!d.config) d.config = defaultConfig();
     if (!d.edital_status) d.edital_status = defaultEditalStatus();
+    if (!d.feynman) d.feynman = [];
     return d;
   } catch(e) { return null; }
 }
 
 function saveDB() { localStorage.setItem('stracker_tjsc', JSON.stringify(DB)); }
 
-let DB = loadDB() || { sessoes:[], erros:[], simulados:[], config:defaultConfig(), edital_status:defaultEditalStatus() };
+let DB = loadDB() || { sessoes:[], erros:[], simulados:[], feynman:[], config:defaultConfig(), edital_status:defaultEditalStatus() };
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  ROTEAMENTO
@@ -994,7 +1094,8 @@ function showView(v) {
   const titles = {
     dashboard:'Dashboard', edital:'Fechamento de Edital',
     sessoes:'Sessões de estudo', erros:'Caderno de Erros',
-    simulados:'Simulados', config:'Configurações', checklist:'Checklist do Edital',
+    simulados:'Simulados', config:'Configurações',
+    checklist:'Checklist do Edital', feynman:'Caderno Feynman',
   };
   document.getElementById('topbar-title').textContent = titles[v] || v;
 
@@ -1701,12 +1802,14 @@ function fmtMin(m) {
 function closeModal(id) { document.getElementById('modal-'+id).classList.remove('open'); }
 
 function showToast(msg, err=false) {
+  clearTimeout(window._toastTimer);
   const t = document.getElementById('toast');
+  t.innerHTML = '';
   t.textContent = msg;
   t.style.borderColor = err?'var(--red)':'var(--accent)';
   t.style.color = err?'var(--red)':'var(--accent)';
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2200);
+  window._toastTimer = setTimeout(()=>{ t.classList.remove('show'); t.innerHTML=''; }, 2500);
 }
 
 function exportData() {
@@ -1717,7 +1820,7 @@ function exportData() {
 
 function clearData() {
   if (!confirm('Apagar todos os dados? Esta ação é irreversível.')) return;
-  DB = { sessoes:[], erros:[], simulados:[], config:defaultConfig(), edital_status:defaultEditalStatus(), checklist:{} };
+  DB = { sessoes:[], erros:[], simulados:[], feynman:[], config:defaultConfig(), edital_status:defaultEditalStatus(), checklist:{} };
   saveDB(); showToast('Dados apagados'); renderDashboard();
 }
 
@@ -2449,16 +2552,211 @@ renderStats = function() {
     </div>`;
 };
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  FEYNMAN — Caderno de fixação ativa pós-sessão
+//
+//  ESTRUTURA DO REGISTRO:
+//  { id, sessao_id, disc, topico, data, p1, p2, p3, p4, p5 }
+//  - sessao_id: vínculo com a sessão correspondente (pode ser '' se criado avulso)
+//  - p1..p5: respostas às 5 perguntas guiadas
+//
+//  DECISÃO: o Feynman é opcional após a sessão (nudge, não bloqueio),
+//  pois bloquear o save seria friction excessiva para um app de uso diário.
+//  O nudge aparece dentro do modal de sessão já aberto, após o save.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Estado interno do Feynman — armazena dados da última sessão salva
+// para pré-preencher o modal quando aberto via nudge.
+let _fyLastSessao = null;
+
+// ─── RENDER DA ABA FEYNMAN ────────────────────────────────────────────────
+function renderFeynman() {
+  const registros = DB.feynman || [];
+
+  // Filtro por disciplina
+  const discKeys = [...new Set(registros.map(r => r.disc))];
+  let activeDisc = window._fyFilterDisc || 'todas';
+
+  function render(filter) {
+    window._fyFilterDisc = filter;
+    activeDisc = filter;
+
+    // Filtros
+    const filterHTML = [
+      `<span class="filter-pill ${filter==='todas'?'active':''}" onclick="fyFilter('todas')">Todos</span>`,
+      ...DISCIPLINAS.filter(d => registros.some(r=>r.disc===d.key)).map(d =>
+        `<span class="filter-pill ${filter===d.key?'active':''}" onclick="fyFilter('${d.key}')">${d.label.replace(/Noções de /g,'')}</span>`
+      )
+    ].join('');
+    document.getElementById('fy-filters').innerHTML = filterHTML;
+
+    const filtrados = filter === 'todas'
+      ? [...registros].sort((a,b) => b.data.localeCompare(a.data))
+      : [...registros].filter(r=>r.disc===filter).sort((a,b) => b.data.localeCompare(a.data));
+
+    if (!filtrados.length) {
+      document.getElementById('fy-list').innerHTML = `
+        <div class="fy-empty">
+          <div class="fy-empty-icon">◎</div>
+          <p>Nenhum registro Feynman ainda.<br>Após salvar uma sessão, use o botão "Abrir Feynman" para fixar o conteúdo.</p>
+        </div>`;
+      return;
+    }
+
+    const PERGUNTAS_CURTAS = ['Explicação simples','Foco da prova','Confusões','Como a banca cobra','Regra mental'];
+
+    document.getElementById('fy-list').innerHTML = filtrados.map(r => {
+      const disc = DISCIPLINAS.find(d=>d.key===r.disc);
+      const cor  = disc?.mod===1 ? 'var(--accent)' : 'var(--purple)';
+      const respostas = [r.p1,r.p2,r.p3,r.p4,r.p5];
+
+      const blocosHTML = PERGUNTAS_CURTAS.map((q,i) => {
+        const resp = respostas[i];
+        if (!resp) return '';
+        return `<div class="fy-block">
+          <div class="fy-block-q">${q}</div>
+          <div class="fy-block-a ${i===4?'regra':''}">${escHtml(resp)}</div>
+        </div>`;
+      }).filter(Boolean).join('');
+
+      return `<div class="fy-card">
+        <div class="fy-card-header">
+          <div class="fy-card-meta">
+            <div class="fy-card-topico">${escHtml(r.topico)}</div>
+            <div class="fy-card-sub">
+              <span class="fy-card-disc" style="background:${cor}18;color:${cor};border:1px solid ${cor}33">${disc?.label?.replace(/Noções de /g,'') || r.disc}</span>
+              <span class="fy-card-date">${r.data}</span>
+            </div>
+          </div>
+          <button class="fy-card-delete" onclick="deleteFeynman('${r.id}')" title="Excluir">×</button>
+        </div>
+        ${blocosHTML}
+      </div>`;
+    }).join('');
+  }
+
+  window.fyFilter = (f) => render(f);
+  render(activeDisc);
+}
+
+// ─── ABRIR MODAL FEYNMAN ─────────────────────────────────────────────────
+function openFeynmanModal(discKey, data, sessaoId) {
+  // Preenche disciplina
+  const sel = document.getElementById('fy-disc');
+  sel.innerHTML = DISCIPLINAS.map(d=>`<option value="${d.key}">${d.label}</option>`).join('');
+  if (discKey) sel.value = discKey;
+
+  document.getElementById('fy-data').value = data || dayStr(0);
+  document.getElementById('fy-topico').value = '';
+  document.getElementById('fy-p1').value = '';
+  document.getElementById('fy-p2').value = '';
+  document.getElementById('fy-p3').value = '';
+  document.getElementById('fy-p4').value = '';
+  document.getElementById('fy-p5').value = '';
+  document.getElementById('fy-sessao-id').value = sessaoId || '';
+  document.getElementById('fy-modal-title').textContent = 'Caderno Feynman';
+
+  document.getElementById('modal-feynman').classList.add('open');
+  setTimeout(() => document.getElementById('fy-topico').focus(), 60);
+}
+
+// ─── SALVAR FEYNMAN ───────────────────────────────────────────────────────
+function saveFeynman(ev) {
+  ev.preventDefault();
+  if (!DB.feynman) DB.feynman = [];
+
+  const registro = {
+    id:        uid(),
+    sessao_id: document.getElementById('fy-sessao-id').value,
+    disc:      document.getElementById('fy-disc').value,
+    topico:    document.getElementById('fy-topico').value.trim(),
+    data:      document.getElementById('fy-data').value,
+    p1:        document.getElementById('fy-p1').value.trim(),
+    p2:        document.getElementById('fy-p2').value.trim(),
+    p3:        document.getElementById('fy-p3').value.trim(),
+    p4:        document.getElementById('fy-p4').value.trim(),
+    p5:        document.getElementById('fy-p5').value.trim(),
+  };
+
+  DB.feynman.push(registro);
+  saveDB();
+  closeModal('feynman');
+
+  // Reforço positivo
+  showToast('Feynman salvo — isso ajuda a fixar o conteúdo.');
+
+  // Se a aba Feynman estiver ativa, re-renderiza
+  const activeView = document.querySelector('.view.active')?.id;
+  if (activeView === 'view-feynman') renderFeynman();
+}
+
+// ─── EXCLUIR FEYNMAN ─────────────────────────────────────────────────────
+function deleteFeynman(id) {
+  if (!confirm('Excluir este registro Feynman?')) return;
+  DB.feynman = (DB.feynman || []).filter(r => r.id !== id);
+  saveDB();
+  renderFeynman();
+}
+
+// ─── UTILITÁRIO ───────────────────────────────────────────────────────────
+function escHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+// ─── PATCH saveSessao — nudge Feynman pós-save ───────────────────────────
+// ESTRATÉGIA: após o save original fechar o modal de sessão, mostramos
+// um toast com botão "Abrir Feynman" — sem interceptar o submit diretamente.
+// Para isso, sobrescrevemos apenas o trecho final do saveSessao original
+// adicionando a lógica de nudge depois do saveDB().
+//
+// DECISÃO: não abrimos o Feynman automaticamente — abrimos o modal
+// de sessão mostrando o nudge. O usuário escolhe se quer preencher agora.
+// Isso respeita o fluxo sem friction forçada.
+const _origSaveSessao = saveSessao;
+saveSessao = function(ev) {
+  // Captura dados antes do original limpar o form
+  const disc = document.getElementById('s-disc').value;
+  const data = document.getElementById('s-data').value;
+
+  // Chama o save original — ele faz ev.preventDefault(), valida, salva e fecha o modal
+  _origSaveSessao(ev);
+
+  // Após o save, DB.sessoes tem a nova sessão como último elemento
+  const lastSessao = DB.sessoes[DB.sessoes.length - 1];
+  _fyLastSessao = lastSessao || { id:'', disc, data };
+
+  // Mostra toast com ação para abrir Feynman
+  // Sobrescreve o toast padrão de "Sessão salva" com versão que inclui ação
+  const t = document.getElementById('toast');
+  t.innerHTML = 'Sessão salva &nbsp;·&nbsp; <span style="cursor:pointer;text-decoration:underline;opacity:.85" onclick="openFeynmanModal(\''+(_fyLastSessao?.id||'')+'\',\''+(_fyLastSessao?.disc||disc)+'\',\''+(_fyLastSessao?.data||data)+'\')">Abrir Feynman</span>';
+  t.style.borderColor = 'var(--accent)';
+  t.style.color = 'var(--accent)';
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => { t.classList.remove('show'); t.innerHTML=''; }, 5000);
+};
+
 // ─── ROUTING PATCH ────────────────────────────────────────────────────────────
 // Adiciona 'checklist' ao showView sem modificar o original
 const _origShowView = showView;
 showView = function(v) {
+  // Toggle .main overflow before delegating — checklist needs overflow:hidden on .main
+  // so its inner panels (.cl-sidebar, .cl-content) can scroll independently.
+  // All other views need overflow-y:auto on .main so their content scrolls normally.
+  const mainEl = document.querySelector('.main');
+  if (mainEl) mainEl.classList.toggle('checklist-active', v === 'checklist');
+
   _origShowView(v);
   if (v === 'checklist') {
-    // Override title (já foi chamado pelo orig)
     document.getElementById('topbar-title').textContent = 'Checklist do Edital';
     document.getElementById('topbar-actions').innerHTML = '';
     renderChecklist();
+  }
+  if (v === 'feynman') {
+    document.getElementById('topbar-title').textContent = 'Caderno Feynman';
+    document.getElementById('topbar-actions').innerHTML =
+      '<button class="btn btn-primary" onclick="openFeynmanModal(\'\',\'\',\'\')">+ Feynman</button>';
+    renderFeynman();
   }
 };
 
