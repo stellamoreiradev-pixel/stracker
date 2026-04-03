@@ -2388,4 +2388,84 @@ function clItemClick(itemId, discKey) {
 function clBulkSet(discKey, status) {
   ensureCL();
   const discData = CHECKLIST_DATA.find(d=>d.disc===discKey);
-  if (!discData) r
+  if (!discData) return;
+  discData.topicos.forEach(t => {
+    if (t.subs.length === 0) {
+      DB.checklist[t.id] = status;
+    } else {
+      t.subs.forEach(s => { DB.checklist[s.id] = status; });
+    }
+  });
+  clSyncDiscStatus(discKey);
+  renderCLContent(discKey);
+  renderCLNav();
+  renderCLGlobalBar();
+  showToast(`${DISCIPLINAS.find(d=>d.key===discKey)?.label} → ${STATUS_LABEL[status]}`);
+}
+
+// ─── INTEGRAÇÃO: STATS DASHBOARD ─────────────────────────────────────────────
+// Patch da renderStats para exibir % de itens dominados (checklist) em vez de
+// apenas disciplinas. Sobrescreve a função original que usa DB.edital_status.
+const _origRenderStats = renderStats;
+renderStats = function() {
+  const today   = dayStr(0);
+  const w7      = dayStr(7);
+  const w30     = dayStr(30);
+  const minHoje   = DB.sessoes.filter(s=>s.data===today).reduce((a,s)=>a+s.dur,0);
+  const minSemana = DB.sessoes.filter(s=>s.data>=w7).reduce((a,s)=>a+s.dur,0);
+  const minMes    = DB.sessoes.filter(s=>s.data>=w30).reduce((a,s)=>a+s.dur,0);
+  const diasSet   = new Set(DB.sessoes.filter(s=>s.data>=w7).map(s=>s.data));
+  const metaDia   = DB.config.meta_dia || 120;
+  const metaPct   = Math.min(100, Math.round(minHoje/metaDia*100));
+  // Usa checklist se disponível, caso contrário usa disciplinas
+  const g = clGlobalProgress();
+  const pctEdital = g.total > 0 ? g.pctEstQ : Math.round(DISCIPLINAS.filter(d=>DB.edital_status[d.key]!=='n-iniciado').length/DISCIPLINAS.length*100);
+  const pctDom    = g.total > 0 ? g.pctDomQ : Math.round(DISCIPLINAS.filter(d=>DB.edital_status[d.key]==='dominado').length/DISCIPLINAS.length*100);
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card ${metaPct>=100?'highlight':''}">
+      <div class="stat-label">Hoje</div>
+      <div class="stat-value">${fmtMin(minHoje)}</div>
+      <div class="stat-sub">meta: ${metaPct}%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">7 dias</div>
+      <div class="stat-value">${fmtMin(minSemana)}</div>
+      <div class="stat-sub">${fmtMin(DB.config.meta_semana||600)} meta</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">30 dias</div>
+      <div class="stat-value">${fmtMin(minMes)}</div>
+      <div class="stat-sub">último mês</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Consistência</div>
+      <div class="stat-value">${diasSet.size}<span style="font-size:12px;color:var(--text3)">/7</span></div>
+      <div class="stat-sub">dias com estudo</div>
+    </div>
+    <div class="stat-card highlight">
+      <div class="stat-label">Edital</div>
+      <div class="stat-value">${pctEdital}<span style="font-size:12px;color:var(--text3)">%</span></div>
+      <div class="stat-sub">${pctDom}% dominado</div>
+    </div>`;
+};
+
+// ─── ROUTING PATCH ────────────────────────────────────────────────────────────
+// Adiciona 'checklist' ao showView sem modificar o original
+const _origShowView = showView;
+showView = function(v) {
+  _origShowView(v);
+  if (v === 'checklist') {
+    // Override title (já foi chamado pelo orig)
+    document.getElementById('topbar-title').textContent = 'Checklist do Edital';
+    document.getElementById('topbar-actions').innerHTML = '';
+    renderChecklist();
+  }
+};
+
+// ─── INIT ───────────────────────────────────────────────────────────────────
+seedDemo();
+renderDashboard();
+</script>
+</body>
+</html>
