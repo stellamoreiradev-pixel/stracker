@@ -55,6 +55,7 @@ body{font-family:var(--font-sans);background:var(--bg);color:var(--text);height:
 .main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 .view{display:none;padding:26px 30px;flex:1}
 .view.active{display:block}
+#view-checklist.active{display:flex}
 
 /* ─── TOPBAR ─────────────────────────────────────────────────────────────── */
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 30px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:10}
@@ -255,83 +256,379 @@ select.form-control{cursor:pointer}
 .inline-num{font-family:var(--font-mono)}
 
 /* ─── CHECKLIST ──────────────────────────────────────────────────────────── */
-/* Layout: dois painéis — lista de disciplinas à esquerda, conteúdo à direita */
-.cl-layout{display:grid;grid-template-columns:220px 1fr;gap:0;height:calc(100vh - 53px);margin:-26px -30px;overflow:hidden}
-.cl-sidebar{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:14px 0}
-.cl-sidebar::-webkit-scrollbar{width:3px}
-.cl-sidebar::-webkit-scrollbar-thumb{background:var(--border2)}
-.cl-content{overflow-y:auto;padding:20px 24px}
-.cl-content::-webkit-scrollbar{width:3px}
-.cl-content::-webkit-scrollbar-thumb{background:var(--border2)}
+/*
+  LAYOUT STRATEGY:
+  - .view#view-checklist ocupa o espaço restante com flex (herdado de .main)
+  - .cl-layout divide em sidebar fixa + painel direito, ambos com scroll próprio
+  - Nenhum overflow:hidden que corte conteúdo legítimo
+  - Todo texto longo: min-width:0 + overflow-wrap para não empurrar contadores
+*/
 
-/* Disc nav items no painel esquerdo */
-.cl-disc-item{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;border-left:2px solid transparent;transition:all .12s;position:relative}
-.cl-disc-item:hover{background:var(--surface2)}
-.cl-disc-item.active{border-left-color:var(--accent);background:var(--accent-dim)}
-.cl-disc-item.active .cl-disc-name{color:var(--accent)}
-.cl-disc-name{font-size:11px;flex:1;color:var(--text2);line-height:1.3}
-.cl-disc-item.active .cl-disc-name{color:var(--accent)}
-.cl-disc-pct{font-family:var(--font-mono);font-size:9px;color:var(--text3);flex-shrink:0}
-.cl-disc-bar{position:absolute;bottom:0;left:0;right:0;height:1px;background:var(--border)}
-.cl-disc-bar-fill{height:100%;transition:width .4s}
-.cl-disc-mod-sep{font-family:var(--font-mono);font-size:8px;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;padding:10px 14px 4px;border-top:1px solid var(--border);margin-top:4px}
-.cl-disc-mod-sep:first-child{border-top:none;margin-top:0}
+/* A view do checklist precisa preencher a área disponível sem padding lateral */
+#view-checklist {
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  /* herda flex:1 e overflow-y do .view — sobreescrevemos abaixo */
+  overflow: hidden;
+  min-height: 0;
+}
 
-/* Header do conteúdo da disciplina */
-.cl-disc-header{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
-.cl-disc-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px}
-.cl-disc-meta{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-.cl-disc-meta-item{font-family:var(--font-mono);font-size:9px;color:var(--text3)}
-.cl-disc-meta-item span{color:var(--text2)}
-.cl-progress-bar-wrap{flex:1;min-width:120px;height:4px;background:var(--surface3);border-radius:2px}
-.cl-progress-bar-fill{height:100%;border-radius:2px;transition:width .4s}
+/* Grid principal: sidebar 230px | conteúdo flex */
+.cl-layout {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-height: 0;       /* essencial para flex children com overflow-y:auto */
+  overflow: hidden;
+}
 
-/* Ações em massa */
-.cl-bulk-actions{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
-.cl-bulk-sep{flex:1}
+/* ── Painel esquerdo (lista de disciplinas) ────────────────────────── */
+.cl-sidebar {
+  width: 230px;
+  min-width: 180px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 10px 0;
+}
+.cl-sidebar::-webkit-scrollbar { width: 3px; }
+.cl-sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
 
-/* Tópico (nível 1) */
-.cl-topic{margin-bottom:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
-.cl-topic-header{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;user-select:none;transition:background .12s}
-.cl-topic-header:hover{background:var(--surface2)}
-.cl-topic-chevron{width:10px;height:10px;flex-shrink:0;color:var(--text3);transition:transform .18s}
-.cl-topic-chevron.open{transform:rotate(90deg)}
-.cl-topic-label{font-size:12px;font-weight:500;flex:1;color:var(--text)}
-.cl-topic-counter{font-family:var(--font-mono);font-size:9px;color:var(--text3);flex-shrink:0}
-.cl-topic-bar{width:50px;height:2px;background:var(--surface3);border-radius:1px;flex-shrink:0}
-.cl-topic-bar-fill{height:100%;border-radius:1px;transition:width .3s}
-.cl-topic-status{font-family:var(--font-mono);font-size:8px;padding:1px 5px;border-radius:3px;flex-shrink:0}
+/* Separador de módulo */
+.cl-disc-mod-sep {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: .1em;
+  color: var(--text3);
+  text-transform: uppercase;
+  padding: 10px 14px 5px;
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+.cl-disc-mod-sep:first-child { border-top: none; margin-top: 0; }
 
-/* Subtópicos container */
-.cl-subtopics{display:none;padding:0 12px 8px;border-top:1px solid var(--border)}
-.cl-subtopics.open{display:block}
+/* Item de disciplina na sidebar */
+.cl-disc-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 14px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background .12s, border-color .12s;
+  min-width: 0;
+}
+.cl-disc-item:hover  { background: var(--surface2); }
+.cl-disc-item.active { border-left-color: var(--accent); background: var(--accent-dim); }
 
-/* Subtópico (nível 2 — unidade de progresso) */
-.cl-sub-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);cursor:default}
-.cl-sub-item:last-child{border-bottom:none}
-.cl-sub-label{font-size:11px;color:var(--text2);flex:1;line-height:1.4}
-.cl-sub-status{font-family:var(--font-mono);font-size:8px;padding:1px 6px;border-radius:3px;cursor:pointer;transition:all .12s;white-space:nowrap;flex-shrink:0;border:1px solid transparent}
-.cl-sub-status:hover{opacity:.8}
+/* Linha superior: nome + % */
+.cl-disc-item-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+.cl-disc-name {
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.35;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.cl-disc-item.active .cl-disc-name { color: var(--accent); }
+.cl-disc-pct {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text3);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
 
-/* Tópico sem subtópicos (item direto) */
-.cl-direct-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--border);cursor:default}
-.cl-direct-item:first-child{border-top:none}
-.cl-direct-label{font-size:11px;color:var(--text2);flex:1;line-height:1.4}
+/* Barra de progresso dentro do item da sidebar */
+.cl-disc-mini-bar {
+  height: 2px;
+  background: var(--surface3);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.cl-disc-mini-bar-fill {
+  height: 100%;
+  border-radius: 1px;
+  transition: width .4s ease;
+}
 
-/* Barra de fechamento global no topo do checklist */
-.cl-global-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;gap:20px;align-items:center;flex-shrink:0}
-.cl-global-stat{text-align:center}
-.cl-global-stat-val{font-family:var(--font-mono);font-size:16px;font-weight:600;line-height:1}
-.cl-global-stat-label{font-family:var(--font-mono);font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
-.cl-global-bars{flex:1;display:flex;flex-direction:column;gap:5px}
-.cl-global-bar-row{display:flex;align-items:center;gap:8px}
-.cl-global-bar-label{font-family:var(--font-mono);font-size:8px;color:var(--text3);width:64px;flex-shrink:0}
-.cl-global-bar-bg{flex:1;height:4px;background:var(--surface3);border-radius:2px}
-.cl-global-bar-fill{height:100%;border-radius:2px;transition:width .4s}
-.cl-global-bar-pct{font-family:var(--font-mono);font-size:9px;width:28px;text-align:right;flex-shrink:0}
+/* ── Painel direito: barra global + conteúdo ───────────────────────── */
+.cl-main-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
 
-/* Wrapper do conteúdo com barra global acima */
-.cl-main-wrap{display:flex;flex-direction:column;overflow:hidden}
+/* Barra de progresso global (fixa no topo do painel direito) */
+.cl-global-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.cl-global-stat { text-align: center; flex-shrink: 0; }
+.cl-global-stat-val {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1;
+}
+.cl-global-stat-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  margin-top: 2px;
+}
+.cl-global-bars { flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 5px; }
+.cl-global-bar-row { display: flex; align-items: center; gap: 8px; }
+.cl-global-bar-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--text3);
+  width: 56px;
+  flex-shrink: 0;
+}
+.cl-global-bar-bg { flex: 1; height: 4px; background: var(--surface3); border-radius: 2px; min-width: 0; }
+.cl-global-bar-fill { height: 100%; border-radius: 2px; transition: width .4s; }
+.cl-global-bar-pct {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  width: 30px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* Área de scroll do conteúdo da disciplina */
+.cl-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 18px 22px 32px;
+}
+.cl-content::-webkit-scrollbar { width: 3px; }
+.cl-content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── Header da disciplina selecionada ──────────────────────────────── */
+.cl-disc-header {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.cl-disc-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+.cl-disc-meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.cl-disc-meta-item {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text3);
+  white-space: nowrap;
+}
+.cl-disc-meta-item span { color: var(--text2); }
+.cl-progress-bar-wrap {
+  flex: 1;
+  min-width: 80px;
+  max-width: 200px;
+  height: 4px;
+  background: var(--surface3);
+  border-radius: 2px;
+}
+.cl-progress-bar-fill { height: 100%; border-radius: 2px; transition: width .4s; }
+
+/* ── Ações em massa ────────────────────────────────────────────────── */
+.cl-bulk-actions {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.cl-bulk-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text3);
+  margin-right: 4px;
+  white-space: nowrap;
+}
+.cl-bulk-sep { flex: 1; min-width: 8px; }
+.cl-bulk-count {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text3);
+  white-space: nowrap;
+}
+
+/* ── Tópico (nível 2) ──────────────────────────────────────────────── */
+.cl-topic {
+  margin-bottom: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: visible; /* nunca cortar conteúdo */
+}
+
+/* Header do tópico — flex com proteção contra overflow de texto */
+.cl-topic-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: background .12s;
+  min-width: 0;
+}
+.cl-topic-header:hover { background: var(--surface2); }
+
+.cl-topic-chevron {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  color: var(--text3);
+  transition: transform .18s;
+}
+.cl-topic-chevron.open { transform: rotate(90deg); }
+
+/* Texto do tópico: cresce mas nunca empurra os contadores */
+.cl-topic-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+  min-width: 0;           /* permite encolher */
+  overflow-wrap: break-word;
+  word-break: break-word;
+  line-height: 1.4;
+  padding-right: 6px;     /* respiro antes dos elementos da direita */
+}
+
+/* Grupo direito: contador + barra + status — nunca quebram */
+.cl-topic-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.cl-topic-counter {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text3);
+  white-space: nowrap;
+}
+.cl-topic-bar {
+  width: 44px;
+  height: 3px;
+  background: var(--surface3);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.cl-topic-bar-fill { height: 100%; border-radius: 2px; transition: width .3s; }
+.cl-topic-status {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ── Subtópicos (nível 3) ──────────────────────────────────────────── */
+.cl-subtopics {
+  display: none;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);   /* fundo levemente diferente para hierarquia */
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+.cl-subtopics.open { display: block; }
+
+.cl-sub-item {
+  display: flex;
+  align-items: flex-start;  /* top-align para textos longos */
+  gap: 10px;
+  padding: 7px 14px 7px 28px;  /* recuo visual = indica nível filho */
+  border-bottom: 1px solid var(--border);
+  min-width: 0;
+}
+.cl-sub-item:last-child { border-bottom: none; }
+
+.cl-sub-label {
+  font-size: 11px;
+  color: var(--text2);
+  flex: 1;
+  min-width: 0;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  padding-top: 1px;   /* alinha com o topo do badge */
+}
+
+.cl-sub-status {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all .12s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+  margin-top: 1px;    /* alinha visualmente com a primeira linha do label */
+}
+.cl-sub-status:hover { opacity: .75; }
+
+/* ── Item direto (tópico sem subtópicos) ───────────────────────────── */
+.cl-direct-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 12px;
+  border-top: 1px solid var(--border);
+  min-width: 0;
+}
+.cl-direct-item:first-child { border-top: none; }
+.cl-direct-label {
+  font-size: 11px;
+  color: var(--text2);
+  flex: 1;
+  min-width: 0;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  padding-top: 1px;
+}
 </style>
 </head>
 <body>
@@ -430,7 +727,7 @@ select.form-control{cursor:pointer}
   </div>
 
   <!-- CHECKLIST -->
-  <div class="view" id="view-checklist" style="padding:0">
+  <div class="view" id="view-checklist">
     <div class="cl-layout">
       <div class="cl-sidebar" id="cl-disc-nav"></div>
       <div class="cl-main-wrap">
@@ -1932,18 +2229,13 @@ function renderCLNav() {
       const prog = clDiscProgress(d.key);
       const isActive = d.key === clActiveDisc;
       const cor = m===1 ? 'var(--accent)' : 'var(--purple)';
-      const stCls = `s-${prog.statusDisc}`;
       html += `<div class="cl-disc-item ${isActive?'active':''}" onclick="clSelectDisc('${d.key}')">
-        <div style="flex:1;min-width:0">
-          <div class="cl-disc-name" style="margin-bottom:3px">${d.label.replace(/Noções de /g,'')}</div>
-          <div style="display:flex;align-items:center;gap:6px">
-            <div style="flex:1;height:2px;background:var(--surface3);border-radius:1px">
-              <div style="height:100%;width:${prog.pctDom}%;background:${cor};border-radius:1px;transition:width .4s"></div>
-            </div>
-            <span style="font-family:var(--font-mono);font-size:8px;color:${isActive?'var(--accent)':'var(--text3)'}">
-              ${prog.pctDom}%
-            </span>
-          </div>
+        <div class="cl-disc-item-row">
+          <span class="cl-disc-name">${d.label.replace(/Noções de /g,'')}</span>
+          <span class="cl-disc-pct" style="${isActive?'color:var(--accent)':''}">${prog.pctDom}%</span>
+        </div>
+        <div class="cl-disc-mini-bar">
+          <div class="cl-disc-mini-bar-fill" style="width:${prog.pctDom}%;background:${cor}"></div>
         </div>
       </div>`;
     });
@@ -1994,12 +2286,12 @@ function renderCLContent(discKey) {
 
   // Ações em massa
   const bulkHtml = `<div class="cl-bulk-actions">
-    <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3)">Marcar todos como:</span>
+    <span class="cl-bulk-label">Marcar tudo:</span>
     ${STATUS_EDITAL.map(s =>
       `<button class="btn btn-ghost btn-sm" onclick="clBulkSet('${discKey}','${s}')">${STATUS_LABEL[s]}</button>`
     ).join('')}
     <span class="cl-bulk-sep"></span>
-    <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3)">${prog.dominado}/${prog.total} dominados</span>
+    <span class="cl-bulk-count">${prog.dominado}/${prog.total} dominados</span>
   </div>`;
 
   // Tópicos
@@ -2009,9 +2301,7 @@ function renderCLContent(discKey) {
       const st = clGetStatus(t.id);
       return `<div class="cl-topic">
         <div class="cl-direct-item">
-          <div style="flex:1">
-            <span class="cl-direct-label">${t.label}</span>
-          </div>
+          <span class="cl-direct-label">${t.label}</span>
           <span class="cl-sub-status status-badge s-${st}" onclick="clItemClick('${t.id}','${discKey}')">${STATUS_LABEL[st]}</span>
         </div>
       </div>`;
@@ -2022,7 +2312,6 @@ function renderCLContent(discKey) {
     const domCount    = subStatuses.filter(s=>s==='dominado').length;
     const estCount    = t.subs.length - subStatuses.filter(s=>s==='n-iniciado').length;
     const pctTopico   = t.subs.length > 0 ? Math.round(domCount/t.subs.length*100) : 0;
-    // Status agregado do tópico (mesmo algoritmo do disc, simplificado)
     let stTopico = 'n-iniciado';
     if (estCount > 0) stTopico = 'estudando';
     if ((subStatuses.filter(s=>['revisado','testado','dominado'].includes(s)).length/t.subs.length)>=0.6) stTopico='revisado';
@@ -2041,9 +2330,11 @@ function renderCLContent(discKey) {
       <div class="cl-topic-header" onclick="clToggleTopic('${t.id}')">
         <svg class="cl-topic-chevron" id="chev-${t.id}" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 2l4 3-4 3"/></svg>
         <span class="cl-topic-label">${t.label}</span>
-        <span style="font-family:var(--font-mono);font-size:9px;color:var(--text3)">${domCount}/${t.subs.length}</span>
-        <div class="cl-topic-bar"><div class="cl-topic-bar-fill" style="width:${pctTopico}%;background:${cor}"></div></div>
-        <span class="cl-topic-status status-badge s-${stTopico}">${STATUS_LABEL[stTopico]}</span>
+        <div class="cl-topic-right">
+          <span class="cl-topic-counter">${domCount}/${t.subs.length}</span>
+          <div class="cl-topic-bar"><div class="cl-topic-bar-fill" style="width:${pctTopico}%;background:${cor}"></div></div>
+          <span class="cl-topic-status status-badge s-${stTopico}">${STATUS_LABEL[stTopico]}</span>
+        </div>
       </div>
       <div class="cl-subtopics" id="subs-${t.id}">
         ${subItemsHtml}
@@ -2056,12 +2347,12 @@ function renderCLContent(discKey) {
       <div class="cl-disc-title">${disc.label}</div>
       <div class="cl-disc-meta">
         <span class="cl-disc-meta-item">${disc.qs} questões · <span>${Math.round(disc.peso*100)}%</span> da prova</span>
-        <span class="cl-disc-meta-item">Itens estudados: <span>${prog.estudado}/${prog.total}</span></span>
+        <span class="cl-disc-meta-item">Estudados: <span>${prog.estudado}/${prog.total}</span></span>
         <span class="cl-disc-meta-item">Dominados: <span>${prog.dominado}/${prog.total}</span></span>
         <div class="cl-progress-bar-wrap">
           <div class="cl-progress-bar-fill" style="width:${prog.pctDom}%;background:${cor}"></div>
         </div>
-        <span class="cl-disc-meta-item" style="color:${cor};font-weight:500">${prog.pctDom}% dominado</span>
+        <span class="cl-disc-meta-item" style="color:${cor};font-weight:500">${prog.pctDom}%</span>
       </div>
     </div>
     ${bulkHtml}
@@ -2097,84 +2388,4 @@ function clItemClick(itemId, discKey) {
 function clBulkSet(discKey, status) {
   ensureCL();
   const discData = CHECKLIST_DATA.find(d=>d.disc===discKey);
-  if (!discData) return;
-  discData.topicos.forEach(t => {
-    if (t.subs.length === 0) {
-      DB.checklist[t.id] = status;
-    } else {
-      t.subs.forEach(s => { DB.checklist[s.id] = status; });
-    }
-  });
-  clSyncDiscStatus(discKey);
-  renderCLContent(discKey);
-  renderCLNav();
-  renderCLGlobalBar();
-  showToast(`${DISCIPLINAS.find(d=>d.key===discKey)?.label} → ${STATUS_LABEL[status]}`);
-}
-
-// ─── INTEGRAÇÃO: STATS DASHBOARD ─────────────────────────────────────────────
-// Patch da renderStats para exibir % de itens dominados (checklist) em vez de
-// apenas disciplinas. Sobrescreve a função original que usa DB.edital_status.
-const _origRenderStats = renderStats;
-renderStats = function() {
-  const today   = dayStr(0);
-  const w7      = dayStr(7);
-  const w30     = dayStr(30);
-  const minHoje   = DB.sessoes.filter(s=>s.data===today).reduce((a,s)=>a+s.dur,0);
-  const minSemana = DB.sessoes.filter(s=>s.data>=w7).reduce((a,s)=>a+s.dur,0);
-  const minMes    = DB.sessoes.filter(s=>s.data>=w30).reduce((a,s)=>a+s.dur,0);
-  const diasSet   = new Set(DB.sessoes.filter(s=>s.data>=w7).map(s=>s.data));
-  const metaDia   = DB.config.meta_dia || 120;
-  const metaPct   = Math.min(100, Math.round(minHoje/metaDia*100));
-  // Usa checklist se disponível, caso contrário usa disciplinas
-  const g = clGlobalProgress();
-  const pctEdital = g.total > 0 ? g.pctEstQ : Math.round(DISCIPLINAS.filter(d=>DB.edital_status[d.key]!=='n-iniciado').length/DISCIPLINAS.length*100);
-  const pctDom    = g.total > 0 ? g.pctDomQ : Math.round(DISCIPLINAS.filter(d=>DB.edital_status[d.key]==='dominado').length/DISCIPLINAS.length*100);
-
-  document.getElementById('stats-grid').innerHTML = `
-    <div class="stat-card ${metaPct>=100?'highlight':''}">
-      <div class="stat-label">Hoje</div>
-      <div class="stat-value">${fmtMin(minHoje)}</div>
-      <div class="stat-sub">meta: ${metaPct}%</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">7 dias</div>
-      <div class="stat-value">${fmtMin(minSemana)}</div>
-      <div class="stat-sub">${fmtMin(DB.config.meta_semana||600)} meta</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">30 dias</div>
-      <div class="stat-value">${fmtMin(minMes)}</div>
-      <div class="stat-sub">último mês</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Consistência</div>
-      <div class="stat-value">${diasSet.size}<span style="font-size:12px;color:var(--text3)">/7</span></div>
-      <div class="stat-sub">dias com estudo</div>
-    </div>
-    <div class="stat-card highlight">
-      <div class="stat-label">Edital</div>
-      <div class="stat-value">${pctEdital}<span style="font-size:12px;color:var(--text3)">%</span></div>
-      <div class="stat-sub">${pctDom}% dominado</div>
-    </div>`;
-};
-
-// ─── ROUTING PATCH ────────────────────────────────────────────────────────────
-// Adiciona 'checklist' ao showView sem modificar o original
-const _origShowView = showView;
-showView = function(v) {
-  _origShowView(v);
-  if (v === 'checklist') {
-    // Override title (já foi chamado pelo orig)
-    document.getElementById('topbar-title').textContent = 'Checklist do Edital';
-    document.getElementById('topbar-actions').innerHTML = '';
-    renderChecklist();
-  }
-};
-
-// ─── INIT ───────────────────────────────────────────────────────────────────
-seedDemo();
-renderDashboard();
-</script>
-</body>
-</html>
+  if (!discData) r
